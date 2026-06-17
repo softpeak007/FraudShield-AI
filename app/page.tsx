@@ -46,7 +46,8 @@ import {
   Sliders,
   CheckSquare,
   HelpCircle,
-  Settings
+  Settings,
+  Menu
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import {
@@ -121,6 +122,7 @@ function generateSandboxCustomer() {
 export default function Page() {
   // Theme and UI States
   const [viewportMode, setViewportMode] = useState<"desktop" | "iphone" | "android">("desktop");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<
     "Dashboard" | "Fraud Alerts" | "Cases" | "Analytics" | "Risk Intelligence" | "Compliance" | "Settings"
   >("Dashboard");
@@ -793,8 +795,15 @@ export default function Page() {
       <div className="w-full mx-auto flex flex-col flex-1 h-screen overflow-hidden">
         
         {/* ================= BRAND TOP BAR HEADER ================= */}
-        <header className="bg-[#0B1220] text-white border-b border-white/5 px-6 py-3 flex items-center justify-between shrink-0 h-16">
+        <header className="bg-[#0B1220] text-white border-b border-white/5 px-6 py-3 flex items-center justify-between shrink-0 h-16 z-50">
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => { setSidebarOpen(!sidebarOpen); playSound("click"); }}
+              className="lg:hidden p-1.5 hover:bg-white/5 rounded-xl border border-white/10 text-slate-400 transition cursor-pointer mr-1"
+              title="Toggle Navigation Menu"
+            >
+              <Menu className="w-5 h-5 text-slate-300" />
+            </button>
             <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20 text-white relative overflow-hidden">
               <ShieldAlert className="w-5 h-5 relative z-10" />
               <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500 to-blue-700 opacity-20"></div>
@@ -885,8 +894,16 @@ export default function Page() {
              ======================================================== */
           <div className="flex-1 flex overflow-hidden min-h-0 bg-[#F8FAFC]">
             
+            {/* Background overlay for mobile drawer */}
+            {sidebarOpen && (
+              <div 
+                className="fixed inset-0 bg-black/60 z-30 lg:hidden"
+                onClick={() => setSidebarOpen(false)}
+              />
+            )}
+
             {/* --- LEFT NAVIGATION SIDEBAR PANEL --- */}
-            <aside className="w-64 bg-[#0B1220] text-slate-300 border-r border-white/5 flex flex-col justify-between shrink-0">
+            <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-[#0B1220] text-slate-300 border-r border-white/5 flex flex-col justify-between shrink-0 transition-transform duration-300 lg:translate-x-0 lg:static lg:h-auto ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`} style={{ height: "calc(100vh - 4rem)", top: "4rem" }}>
               
               {/* Menu items */}
               <div className="p-4 space-y-6">
@@ -906,7 +923,7 @@ export default function Page() {
                       return (
                         <button
                           key={tab.id}
-                          onClick={() => { playSound("click"); setActiveTab(tab.id as any); }}
+                          onClick={() => { playSound("click"); setActiveTab(tab.id as any); setSidebarOpen(false); }}
                           className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition duration-150 ${active ? "bg-blue-600 text-white shadow-md shadow-blue-600/10" : "text-slate-400 hover:bg-white/5 hover:text-white"}`}
                         >
                           <div className="flex items-center gap-2.5">
@@ -939,7 +956,7 @@ export default function Page() {
                       return (
                         <button
                           key={tab.id}
-                          onClick={() => { playSound("click"); setActiveTab(tab.id as any); }}
+                          onClick={() => { playSound("click"); setActiveTab(tab.id as any); setSidebarOpen(false); }}
                           className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition duration-150 ${active ? "bg-blue-600 text-white" : "text-slate-400 hover:bg-white/5 hover:text-white"}`}
                         >
                           <div className="flex items-center gap-2.5">
@@ -1031,29 +1048,29 @@ export default function Page() {
                     </div>
 
                     {/* SECTION 1: EXECUTIVE KPI CARDS */}
-                    <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                       {[
-                        { title: "Total Audits", value: "$41,085", sub: "Last 24h", trend: "+12.4%", status: "up", icon: CreditCard, color: "text-blue-600 bg-blue-50 border-blue-100" },
-                        { title: "Active Risk Outflow", value: `$${alerts.filter(a => a.severity === "CRITICAL" && a.status === "In Review").reduce((sum, a) => sum + a.amount, 0).toLocaleString()}`, sub: "Blocked Attempts", trend: "-4.1%", status: "down", icon: AlertTriangle, color: "text-red-600 bg-red-50 border-red-100" },
-                        { title: "In Review Flags", value: alerts.filter(a => a.status === "In Review").length.toString(), sub: "Needs urgent review", trend: "+2 new", status: "up", icon: Activity, color: "text-amber-500 bg-amber-50 border-amber-100" },
-                        { title: "Approved Policy", value: alerts.filter(a => a.status === "Approved").length.toString(), sub: "Autonomous pass", trend: "99.8%", status: "up", icon: ShieldCheck, color: "text-emerald-600 bg-emerald-50 border-emerald-100" },
-                        { title: "Avg Risk Index", value: Math.round(alerts.reduce((avg, cur) => avg + cur.riskScore, 0) / alerts.length).toString() + "%", sub: "Heuristic threshold", trend: "Safe range", status: "stable", icon: Cpu, color: "text-indigo-600 bg-indigo-50 border-indigo-100" },
-                        { title: "Cognitive Accuracy", value: "99.94%", sub: "Gemini-3.5 flash", trend: "+0.02%", status: "up", icon: Sparkles, color: "text-cyan-600 bg-cyan-50 border-cyan-100" }
+                        { title: "Total Audits", value: "$41,085", sub: "Last 24h", trend: "+12.4%", status: "up", icon: CreditCard, color: "text-blue-700 bg-blue-50 border-blue-100" },
+                        { title: "Active Risk Outflow", value: `$${alerts.filter(a => a.severity === "CRITICAL" && a.status === "In Review").reduce((sum, a) => sum + a.amount, 0).toLocaleString()}`, sub: "Blocked Attempts", trend: "-4.1%", status: "down", icon: AlertTriangle, color: "text-red-700 bg-red-50 border-red-100" },
+                        { title: "In Review Flags", value: alerts.filter(a => a.status === "In Review").length.toString(), sub: "Needs urgent review", trend: "+2 new", status: "up", icon: Activity, color: "text-amber-750 bg-amber-50 border-amber-100" },
+                        { title: "Approved Policy", value: alerts.filter(a => a.status === "Approved").length.toString(), sub: "Autonomous pass", trend: "99.8%", status: "up", icon: ShieldCheck, color: "text-emerald-750 bg-emerald-50 border-emerald-100" },
+                        { title: "Avg Risk Index", value: Math.round(alerts.reduce((avg, cur) => avg + cur.riskScore, 0) / alerts.length).toString() + "%", sub: "Heuristic threshold", trend: "Safe range", status: "stable", icon: Cpu, color: "text-indigo-750 bg-indigo-50 border-indigo-100" },
+                        { title: "Cognitive Accuracy", value: "99.94%", sub: "Gemini-3.5 flash", trend: "+0.02%", status: "up", icon: Sparkles, color: "text-cyan-750 bg-cyan-50 border-cyan-100" }
                       ].map((card, idx) => {
                         const Icon = card.icon;
                         return (
-                          <div key={idx} className="bg-white border border-slate-200 rounded-2xl p-4 transition-all duration-300 hover:shadow-premium-md hover:border-slate-300 flex flex-col justify-between select-none shadow-premium-sm">
-                            <div className="flex justify-between items-start">
-                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{card.title}</span>
-                              <div className={`p-2 rounded-xl border ${card.color}`}>
-                                <Icon className="w-4 h-4" />
+                          <div key={idx} className="bg-white border border-slate-200 rounded-2xl p-4 transition-all duration-300 hover:shadow-premium-md hover:border-slate-300 flex flex-col justify-between select-none shadow-premium-sm min-w-0">
+                            <div className="flex justify-between items-start gap-1">
+                              <span className="text-[10px] sm:text-[10.5px] font-semibold text-slate-500 uppercase tracking-wider truncate" title={card.title}>{card.title}</span>
+                              <div className={`p-1.5 rounded-xl border shrink-0 ${card.color}`}>
+                                <Icon className="w-3.5 h-3.5" />
                               </div>
                             </div>
                             <div className="mt-4">
-                              <div className="text-xl font-black text-slate-800 tracking-tight">{card.value}</div>
-                              <div className="flex justify-between items-center mt-1 text-[10px]">
-                                <span className="text-slate-400 font-medium">{card.sub}</span>
-                                <span className={`font-black uppercase px-1 py-0.2 rounded font-mono ${card.status === "up" ? "text-emerald-600" : card.status === "down" ? "text-red-500" : "text-blue-500"}`}>
+                              <div className="text-lg sm:text-xl xl:text-2xl font-bold tracking-tight text-slate-900 whitespace-nowrap truncate tabular-nums leading-none" title={card.value}>{card.value}</div>
+                              <div className="flex justify-between items-center mt-2.5 text-[10px] gap-1">
+                                <span className="text-slate-500 font-medium truncate" title={card.sub}>{card.sub}</span>
+                                <span className={`font-bold uppercase px-1 py-0.2 rounded font-mono shrink-0 ${card.status === "up" ? "text-emerald-700" : card.status === "down" ? "text-red-650" : "text-blue-700"}`}>
                                   {card.trend}
                                 </span>
                               </div>
@@ -1578,12 +1595,12 @@ export default function Page() {
                                     className="cursor-pointer"
                                   />
                                 </th>
-                                <th className="p-3.5">Case/Tx ID</th>
-                                <th className="p-3.5">Customer Name</th>
-                                <th className="p-3.5">Category Class</th>
-                                <th className="p-3.5 text-center">Risk Index</th>
-                                <th className="p-3.5">Amount</th>
-                                <th className="p-3.5">Status</th>
+                                <th className="p-3.5 whitespace-nowrap">Case/Tx ID</th>
+                                <th className="p-3.5 whitespace-nowrap">Customer Name</th>
+                                <th className="p-3.5 whitespace-nowrap">Category Class</th>
+                                <th className="p-3.5 text-center whitespace-nowrap">Risk Index</th>
+                                <th className="p-3.5 whitespace-nowrap">Amount</th>
+                                <th className="p-3.5 whitespace-nowrap">Status</th>
                               </tr>
                             </thead>
                             <tbody>
@@ -1612,16 +1629,16 @@ export default function Page() {
                                           className="cursor-pointer"
                                         />
                                       </td>
-                                      <td className="p-3.5 font-bold text-slate-900 font-mono">{item.id}</td>
-                                      <td className="p-3.5 font-semibold text-slate-850">{item.customer}</td>
-                                      <td className="p-3.5 text-slate-500 font-medium ">{item.category}</td>
-                                      <td className="p-3.5 text-center">
+                                      <td className="p-3.5 font-bold text-slate-900 font-mono whitespace-nowrap">{item.id}</td>
+                                      <td className="p-3.5 font-semibold text-slate-850 whitespace-nowrap">{item.customer}</td>
+                                      <td className="p-3.5 text-slate-500 font-medium whitespace-nowrap">{item.category}</td>
+                                      <td className="p-3.5 text-center whitespace-nowrap">
                                         <span className={`font-mono font-black text-[10.5px] px-2 py-0.5 rounded-full ${item.severity === "CRITICAL" ? "bg-red-50 text-red-650" : item.severity === "SUSPICIOUS" ? "bg-amber-50 text-amber-650" : "bg-emerald-50 text-emerald-650"}`}>
                                           {item.riskScore}%
                                         </span>
                                       </td>
-                                      <td className="p-3.5 font-extrabold text-slate-900 text-right pr-6">${item.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                                      <td className="p-3.5">
+                                      <td className="p-3.5 font-extrabold text-slate-900 text-right pr-6 whitespace-nowrap">${item.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                                      <td className="p-3.5 whitespace-nowrap">
                                         <span className={`font-black uppercase tracking-wider text-[9px] font-mono px-2 py-0.5 rounded-full ${item.status === "Approved" ? "bg-emerald-50 text-emerald-600" : item.status === "Blocked & Frozen" ? "bg-red-50 text-red-650" : item.status === "Escalated" ? "bg-blue-50 text-blue-600" : "bg-amber-50 text-amber-600"}`}>
                                           {item.status}
                                         </span>
@@ -1736,26 +1753,29 @@ export default function Page() {
                     </div>
 
                     {/* KPI Indices */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                      <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-premium-sm">
-                        <div className="text-[10px] uppercase font-mono text-slate-400 font-bold">Prevented Loss Capital</div>
-                        <div className="text-xl font-extrabold text-slate-800 mt-1">$485,250.00</div>
-                        <div className="text-[10px] text-emerald-600 font-bold mt-1">✓ 100% of detected attacks neutralized</div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-premium-sm flex flex-col justify-between min-w-0">
+                        <div className="text-[10px] sm:text-[11px] uppercase font-mono text-slate-500 font-semibold tracking-wider truncate" title="Prevented Loss Capital">Prevented Loss Capital</div>
+                        <div className="text-xl sm:text-2xl xl:text-3xl font-bold tracking-tight text-slate-900 mt-2 whitespace-nowrap tabular-nums leading-none">$485,250.00</div>
+                        <div className="text-[10px] sm:text-[10.5px] text-emerald-700 font-bold mt-2.5 leading-tight tracking-tight flex items-center gap-1 select-none">
+                          <span className="shrink-0 text-emerald-600 font-sans">✓</span>
+                          <span className="truncate" title="100% of detected attacks neutralized">100% of detected attacks neutralized</span>
+                        </div>
                       </div>
-                      <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-premium-sm">
-                        <div className="text-[10px] uppercase font-mono text-slate-400 font-bold">Mitigation Velocity</div>
-                        <div className="text-xl font-extrabold text-slate-800 mt-1">1.8 Seconds</div>
-                        <div className="text-[10px] text-slate-400 font-semibold mt-1">From detection to active token hold</div>
+                      <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-premium-sm flex flex-col justify-between min-w-0">
+                        <div className="text-[10px] sm:text-[11px] uppercase font-mono text-slate-500 font-semibold tracking-wider truncate" title="Mitigation Velocity">Mitigation Velocity</div>
+                        <div className="text-xl sm:text-2xl xl:text-3xl font-bold tracking-tight text-slate-900 mt-2 whitespace-nowrap tabular-nums leading-none">1.8 Seconds</div>
+                        <div className="text-[10px] sm:text-[10.5px] text-slate-500 font-medium mt-2.5 leading-tight tracking-tight truncate" title="From detection to active token hold">From detection to active token hold</div>
                       </div>
-                      <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-premium-sm">
-                        <div className="text-[10px] uppercase font-mono text-slate-400 font-bold">MFA Challenge Bypass Rate</div>
-                        <div className="text-xl font-extrabold text-emerald-600 mt-1">0.00%</div>
-                        <div className="text-[10px] text-slate-400 font-semibold mt-1">No successful proxy bypasses reported</div>
+                      <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-premium-sm flex flex-col justify-between min-w-0">
+                        <div className="text-[10px] sm:text-[11px] uppercase font-mono text-slate-500 font-semibold tracking-wider truncate" title="MFA Challenge Bypass Rate">MFA Challenge Bypass Rate</div>
+                        <div className="text-xl sm:text-2xl xl:text-3xl font-bold tracking-tight text-emerald-700 mt-2 whitespace-nowrap tabular-nums leading-none">0.00%</div>
+                        <div className="text-[10px] sm:text-[10.5px] text-slate-500 font-medium mt-2.5 leading-tight tracking-tight truncate" title="No successful proxy bypasses reported">No successful proxy bypasses reported</div>
                       </div>
-                      <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-premium-sm">
-                        <div className="text-[10px] uppercase font-mono text-slate-400 font-bold">Active Shield Confidence</div>
-                        <div className="text-xl font-extrabold text-blue-600 mt-1">99.94%</div>
-                        <div className="text-[10px] text-blue-600 font-bold mt-1">Secured via Aegis-9 Core</div>
+                      <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-premium-sm flex flex-col justify-between min-w-0">
+                        <div className="text-[10px] sm:text-[11px] uppercase font-mono text-slate-500 font-semibold tracking-wider truncate" title="Active Shield Confidence">Active Shield Confidence</div>
+                        <div className="text-xl sm:text-2xl xl:text-3xl font-bold tracking-tight text-blue-700 mt-2 whitespace-nowrap tabular-nums leading-none">99.94%</div>
+                        <div className="text-[10px] sm:text-[10.5px] text-blue-700 font-bold mt-2.5 leading-tight tracking-tight truncate" title="Secured via Aegis-9 Core">Secured via Aegis-9 Core</div>
                       </div>
                     </div>
 
@@ -2279,7 +2299,7 @@ ${selectedAlert.recommendation}`}
 
                         <div className="flex gap-2">
                           <button
-                            onClick={() => { playSound("success"); alert("SAR Draft compiled successfully. Safe backup ledger recorded on Cloud SQL database."); }}
+                            onClick={() => { playSound("success"); setNotifyQueue("SAR Draft compiled successfully. Safe backup ledger recorded on Cloud SQL database."); }}
                             className="bg-indigo-600 hover:bg-indigo-750 text-white px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
                           >
                             <Send className="w-3.5 h-3.5" /> Deploy SAR Filing to FinCEN
