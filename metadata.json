@@ -1,0 +1,6 @@
+{
+  "name": "AI Fraud & Case Monitor",
+  "description": "Enterprise-grade B2B Fraud Detection, Risk Intelligence, and Case Management platform built for fintechs, banks, and security teams with AI Copilot reasoning.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
