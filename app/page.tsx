@@ -110,6 +110,14 @@ function getNextAlertIds() {
   };
 }
 
+function generateSandboxId() {
+  return "SANDBOX-" + Math.floor(Math.random() * 9000 + 1000);
+}
+
+function generateSandboxCustomer() {
+  return "Sandbox Account ID: " + Math.floor(Math.random() * 1000 + 1);
+}
+
 export default function Page() {
   // Theme and UI States
   const [viewportMode, setViewportMode] = useState<"desktop" | "iphone" | "android">("desktop");
@@ -240,6 +248,118 @@ export default function Page() {
   ]);
 
   const [selectedAlert, setSelectedAlert] = useState<Alert>(alerts[0]);
+  
+  // Interactive Forensic Risk Analyzer States
+  const [threatPreset, setThreatPreset] = useState<"crypto" | "travel" | "micro" | "custom">("crypto");
+  const [threatInputMerchant, setThreatInputMerchant] = useState("NEXUS CRYPTO EXCHANGE");
+  const [threatInputAmount, setThreatInputAmount] = useState(14900.00);
+  const [threatInputCategory, setThreatInputCategory] = useState("Account Drain Attempt");
+  const [threatInputLocation, setThreatInputLocation] = useState("Reykjavík, IS (Mullvad Relay)");
+  const [threatInputIp, setThreatInputIp] = useState("185.213.154.12");
+  const [threatInputHeader, setThreatInputHeader] = useState("Mozilla/5.0 (X11; Linux x86) AppleWebKit/537.36 Chrome/121");
+  const [threatInputRiskScore, setThreatInputRiskScore] = useState(96);
+  
+  const [forensicState, setForensicState] = useState<"IDLE" | "SCANNING" | "COMPLETE" | "ERROR">("IDLE");
+  const [forensicPayload, setForensicPayload] = useState<any>(null);
+  
+  // Interactive Risk Analytics Simulation States
+  const [simTransactions, setSimTransactions] = useState(25000);
+  const [simAttackRate, setSimAttackRate] = useState(0.85);
+  const [simAiAccuracy, setSimAiAccuracy] = useState(94.0);
+  const [simAvgTicket, setSimAvgTicket] = useState(180);
+
+  const [isSandboxRunning, setIsSandboxRunning] = useState(false);
+  
+  const handlePresetChange = (preset: "crypto" | "travel" | "micro" | "custom") => {
+    setThreatPreset(preset);
+    playSound("click");
+    if (preset === "crypto") {
+      setThreatInputMerchant("NEXUS CRYPTO EXCHANGE");
+      setThreatInputAmount(14900.00);
+      setThreatInputCategory("Account Drain Attempt");
+      setThreatInputLocation("Reykjavík, IS (Mullvad Relay)");
+      setThreatInputIp("185.213.154.12");
+      setThreatInputHeader("Mozilla/5.0 (X11; Linux x86) AppleWebKit/537.36 Chrome/121");
+      setThreatInputRiskScore(96);
+    } else if (preset === "travel") {
+      setThreatInputMerchant("PARIS TELECOM PORTAL");
+      setThreatInputAmount(49.99);
+      setThreatInputCategory("Card Verification Test");
+      setThreatInputLocation("Paris, France");
+      setThreatInputIp("93.184.216.34");
+      setThreatInputHeader("Safari/17.2 iOS (iPhone 15 Pro)");
+      setThreatInputRiskScore(68);
+    } else if (preset === "micro") {
+      setThreatInputMerchant("P2P MICRO-TRANSFER CO");
+      setThreatInputAmount(1.45);
+      setThreatInputCategory("Micro-Charge Sequence");
+      setThreatInputLocation("Moscow, RU (Proxy Node)");
+      setThreatInputIp("185.70.185.15");
+      setThreatInputHeader("Python-requests/2.31.0 Scripting CLI");
+      setThreatInputRiskScore(78);
+    }
+    setForensicState("IDLE");
+  };
+
+  const runSandboxForensics = async () => {
+    playSound("click");
+    setIsSandboxRunning(true);
+    setForensicState("SCANNING");
+    addLog("INTELLIGENCE", `Aegis-9 sandbox simulation suite launched. Analyzing route ${threatInputIp}.`);
+    
+    // Simulate real high-tech terminal output step-by-step
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    try {
+      const mockTx = {
+        id: generateSandboxId(),
+        customer: generateSandboxCustomer(),
+        merchant: threatInputMerchant,
+        amount: Number(threatInputAmount),
+        timestamp: "Just now",
+        category: threatInputCategory,
+        location: threatInputLocation,
+        riskScore: Number(threatInputRiskScore),
+        severity: Number(threatInputRiskScore) > 85 ? "CRITICAL" : Number(threatInputRiskScore) > 40 ? "SUSPICIOUS" : "SAFE",
+        anomalies: [
+          threatInputCategory,
+          "Sandbox Telemetry Override",
+          ...(Number(threatInputRiskScore) > 70 ? ["Impossible Velocity Probe", "Proxy Router Mismatch"] : [])
+        ],
+        deviceIp: threatInputIp,
+        deviceHeader: threatInputHeader,
+        status: "In Review"
+      };
+      
+      const response = await fetch("/api/gemini/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ transaction: mockTx })
+      });
+      
+      const data = await response.json();
+      
+      setForensicPayload({
+        id: mockTx.id,
+        verdict: data.verdict || mockTx.severity,
+        riskScore: data.riskScore || mockTx.riskScore,
+        reasoning: data.reasoning || "Aegis-9 automated mitigation policy matched offline signature.",
+        anomalies: data.anomalies && data.anomalies.length > 0 ? data.anomalies : mockTx.anomalies,
+        recommendation: data.recommendation || "Initiate immediate security lock and verify customer credentials offline.",
+        summary: data.summary || "Aegis-9 localized behavioral verification engine scanned custom endpoint routing."
+      });
+      
+      setForensicState("COMPLETE");
+      addLog("INTELLIGENCE", `Sandbox analysis complete. Risk calculated at ${data.riskScore || mockTx.riskScore}%.`);
+      playSound("success");
+    } catch (_) {
+      setForensicState("ERROR");
+      addLog("SYSTEM", "Sandbox forensic channel timeout. Fail-safe defense mechanism engaged.");
+    } finally {
+      setIsSandboxRunning(false);
+    }
+  };
+
   const [logs, setLogs] = useState<{ id: string; time: string; category: "SYSTEM" | "ALERTS" | "SECURITY" | "INTELLIGENCE"; text: string }[]>([
     { id: "1", time: "18:02:40", category: "SYSTEM", text: "FraudShield AI core security heuristics initialized." },
     { id: "2", time: "18:03:15", category: "SECURITY", text: "Verified TLS handshake with Federal SAR Regulatory portal." },
@@ -1596,7 +1716,517 @@ export default function Page() {
                   </div>
                 )}
 
-                {/* 4. COMPLIANCE & ACCIDENT SECTORS */}
+                {/* 3.1. DYNAMIC RISK ANALYTICS LEDGER */}
+                {activeTab === "Analytics" && (
+                  <div className="space-y-6">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                      <div>
+                        <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                          <TrendingUp className="w-5 h-5 text-indigo-600 animate-pulse" />
+                          Risk Analytics & Security Ledger
+                        </h1>
+                        <p className="text-xs text-slate-500">
+                          Comprehensive analysis of prevented capital leakage, AI detection reliability ratios, and live threat-mitigation metrics.
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 font-mono text-[10.5px] bg-white border border-slate-205 px-3 py-1.5 rounded-xl shadow-sm text-slate-655">
+                        <span className="w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
+                        <span>PREVENTATIVE MODE: ACTIVE</span>
+                      </div>
+                    </div>
+
+                    {/* KPI Indices */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-premium-sm">
+                        <div className="text-[10px] uppercase font-mono text-slate-400 font-bold">Prevented Loss Capital</div>
+                        <div className="text-xl font-extrabold text-slate-800 mt-1">$485,250.00</div>
+                        <div className="text-[10px] text-emerald-600 font-bold mt-1">✓ 100% of detected attacks neutralized</div>
+                      </div>
+                      <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-premium-sm">
+                        <div className="text-[10px] uppercase font-mono text-slate-400 font-bold">Mitigation Velocity</div>
+                        <div className="text-xl font-extrabold text-slate-800 mt-1">1.8 Seconds</div>
+                        <div className="text-[10px] text-slate-400 font-semibold mt-1">From detection to active token hold</div>
+                      </div>
+                      <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-premium-sm">
+                        <div className="text-[10px] uppercase font-mono text-slate-400 font-bold">MFA Challenge Bypass Rate</div>
+                        <div className="text-xl font-extrabold text-emerald-600 mt-1">0.00%</div>
+                        <div className="text-[10px] text-slate-400 font-semibold mt-1">No successful proxy bypasses reported</div>
+                      </div>
+                      <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-premium-sm">
+                        <div className="text-[10px] uppercase font-mono text-slate-400 font-bold">Active Shield Confidence</div>
+                        <div className="text-xl font-extrabold text-blue-600 mt-1">99.94%</div>
+                        <div className="text-[10px] text-blue-600 font-bold mt-1">Secured via Aegis-9 Core</div>
+                      </div>
+                    </div>
+
+                    {/* Visual Charts Row */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-premium-sm">
+                        <div className="border-b border-slate-50 pb-3 mb-4">
+                          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800">24-Hour Threat Blocked Volume ($)</h3>
+                          <p className="text-[10px] text-slate-400">Comparing total incoming fraudulent value vs capital successfully blocked.</p>
+                        </div>
+                        <div className="h-64 font-mono text-xs">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart
+                              data={[
+                                { hour: "02:00", Outflow: 12000, Blocked: 12000 },
+                                { hour: "06:00", Outflow: 38000, Blocked: 38000 },
+                                { hour: "10:00", Outflow: 145000, Blocked: 145000 },
+                                { hour: "14:00", Outflow: 114000, Blocked: 114000 },
+                                { hour: "18:00", Outflow: 124000, Blocked: 124000 },
+                                { hour: "22:00", Outflow: 52250, Blocked: 52250 }
+                              ]}
+                              margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                            >
+                              <defs>
+                                <linearGradient id="colorO" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="5%" stopColor="#EF4444" stopOpacity={0.1}/>
+                                  <stop offset="95%" stopColor="#EF4444" stopOpacity={0}/>
+                                </linearGradient>
+                                <linearGradient id="colorB" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="5%" stopColor="#10B981" stopOpacity={0.2}/>
+                                  <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
+                                </linearGradient>
+                              </defs>
+                              <XAxis dataKey="hour" stroke="#94A3B8" />
+                              <YAxis stroke="#94A3B8" />
+                              <Tooltip />
+                              <Area type="monotone" dataKey="Outflow" name="Unsecured Threats" stroke="#EF4444" fillOpacity={1} fill="url(#colorO)" strokeWidth={1.5} />
+                              <Area type="monotone" dataKey="Blocked" name="Blocked Capital" stroke="#10B981" fillOpacity={1} fill="url(#colorB)" strokeWidth={2} />
+                            </AreaChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+
+                      <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-premium-sm">
+                        <div className="border-b border-slate-50 pb-3 mb-4">
+                          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800">Target Volume Distribution by Merchant</h3>
+                          <p className="text-[10px] text-slate-400">Total detected fraudulent attempts mapped across key commercial tunnels.</p>
+                        </div>
+                        <div className="h-64 font-mono text-xs">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart
+                              data={[
+                                { name: "NEXUS CRYPTO", value: 245000 },
+                                { name: "PARIS TELECOM", value: 124000 },
+                                { name: "P2P TRANSFER", value: 62000 },
+                                { name: "COIN VALVES", value: 54250 }
+                              ]}
+                              margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                            >
+                              <XAxis dataKey="name" stroke="#94A3B8" />
+                              <YAxis stroke="#94A3B8" />
+                              <Tooltip />
+                              <Bar dataKey="value" name="Exposure ($)" fill="#3B82F6" radius={[4, 4, 0, 0]}>
+                                <Cell fill="#F43F5E" />
+                                <Cell fill="#F59E0B" />
+                                <Cell fill="#3B82F6" />
+                                <Cell fill="#10B981" />
+                              </Bar>
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Live Forecast Playground */}
+                    <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-premium-sm space-y-4">
+                      <div>
+                        <h3 className="text-xs font-black uppercase tracking-wider text-slate-850 flex items-center gap-2">
+                          <Zap className="w-4 h-4 text-indigo-500 animate-pulse" />
+                          Aegis-9 Threat Forecast Calculator & Interactive Sandbox
+                        </h3>
+                        <p className="text-[10.5px] text-slate-450 mt-1">
+                          Test custom volume scaling rules and AI capture thresholds to project compliance recovery metrics and prevent potential system outflow leakage.
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+                        {/* Interactive sliders */}
+                        <div className="space-y-4 bg-slate-50 border border-slate-150 p-4 rounded-xl">
+                          <div className="space-y-1">
+                            <div className="flex justify-between items-center text-xs font-bold text-slate-700">
+                              <span>Daily Transaction Flow:</span>
+                              <span className="font-mono text-indigo-600">{simTransactions.toLocaleString()} TXs</span>
+                            </div>
+                            <input
+                              type="range"
+                              min="5000"
+                              max="100000"
+                              step="5000"
+                              value={simTransactions}
+                              onChange={(e) => setSimTransactions(Number(e.target.value))}
+                              className="w-full accent-indigo-600"
+                            />
+                            <div className="flex justify-between text-[8px] text-slate-400 font-mono">
+                              <span>5K</span>
+                              <span>100K</span>
+                            </div>
+                          </div>
+
+                          <div className="space-y-1">
+                            <div className="flex justify-between items-center text-xs font-bold text-slate-700">
+                              <span>Attack Intromission Rate:</span>
+                              <span className="font-mono text-red-650">{simAttackRate.toFixed(2)}%</span>
+                            </div>
+                            <input
+                              type="range"
+                              min="0.1"
+                              max="5.0"
+                              step="0.05"
+                              value={simAttackRate}
+                              onChange={(e) => setSimAttackRate(Number(e.target.value))}
+                              className="w-full accent-indigo-600"
+                            />
+                            <div className="flex justify-between text-[8px] text-slate-400 font-mono">
+                              <span>0.1%</span>
+                              <span>5.0%</span>
+                            </div>
+                          </div>
+
+                          <div className="space-y-1">
+                            <div className="flex justify-between items-center text-xs font-bold text-slate-700">
+                              <span>AI Capture Precision (MFA):</span>
+                              <span className="font-mono text-emerald-600">{simAiAccuracy.toFixed(1)}%</span>
+                            </div>
+                            <input
+                              type="range"
+                              min="60"
+                              max="100"
+                              step="0.5"
+                              value={simAiAccuracy}
+                              onChange={(e) => setSimAiAccuracy(Number(e.target.value))}
+                              className="w-full accent-indigo-600"
+                            />
+                            <div className="flex justify-between text-[8px] text-slate-400 font-mono">
+                              <span>60%</span>
+                              <span>100% (Elite)</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Projection Indicators */}
+                        <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="bg-slate-900 border border-slate-950 p-4 rounded-xl flex flex-col justify-between">
+                            <div>
+                              <span className="text-[9px] font-mono text-slate-400 uppercase tracking-widest block font-bold">PROJECTED ATTEMPTS / DAY</span>
+                              <span className="text-2xl font-black text-rose-500 font-mono mt-1 block">
+                                {Math.round((simTransactions * simAttackRate) / 100)} INCIDENTS
+                              </span>
+                              <p className="text-[10px] text-slate-450 mt-1.5 leading-normal">
+                                Based on current behavioral profiles network-wide at {simAttackRate}% attack factor.
+                              </p>
+                            </div>
+                            <div className="text-[9px] font-mono text-slate-500 uppercase mt-4">
+                              VALUED AT ~${(Math.round((simTransactions * simAttackRate) / 100) * simAvgTicket).toLocaleString()} OUTFLOW EXPOSURE
+                            </div>
+                          </div>
+
+                          <div className="bg-emerald-950/25 border border-emerald-900/30 p-4 rounded-xl flex flex-col justify-between">
+                            <div>
+                              <span className="text-[9px] font-mono text-emerald-400 uppercase tracking-widest block font-bold">PREVENTED VALUE RATIO</span>
+                              <span className="text-2xl font-black text-emerald-450 font-mono mt-1 block">
+                                ${Math.round(((simTransactions * simAttackRate) / 100) * simAvgTicket * (simAiAccuracy / 100)).toLocaleString()}
+                              </span>
+                              <p className="text-[10px] text-emerald-600 font-semibold mt-1.5 leading-normal">
+                                Recovered liquidity retained within active consumer lines by shielding user channels.
+                              </p>
+                            </div>
+                            
+                            <div className="mt-4 flex items-center justify-between">
+                              <span className="text-[9px] font-mono text-slate-405 font-bold uppercase">Aegis Assessment:</span>
+                              {((simTransactions * simAttackRate) / 100) * simAvgTicket * (1 - simAiAccuracy / 100) > 15000 ? (
+                                <span className="bg-red-950/50 border border-red-900/65 text-red-400 font-mono text-[8.5px] px-2 py-0.5 rounded uppercase font-black tracking-wide">
+                                  ⚠️ HIGH DRIP LOSS
+                                </span>
+                              ) : (
+                                <span className="bg-emerald-950/70 border border-emerald-910 text-emerald-400 font-mono text-[8.5px] px-2 py-0.5 rounded uppercase font-black tracking-wide">
+                                  ✓ SECURE SHIELD
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 3.2. DYNAMIC RISK INTELLIGENCE & FORENSIC ANALYSER (RISK ANALYSER) */}
+                {activeTab === "Risk Intelligence" && (
+                  <div className="space-y-6">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                          <Cpu className="w-5 h-5 text-blue-600" />
+                          Aegis-9 AI Forensic & Risk Sandbox
+                        </h1>
+                        <p className="text-xs text-slate-500">
+                          Configure transactional attributes and run the high-precision Gemini reasoning model to diagnose fraud vectors and linked entity risks.
+                        </p>
+                      </div>
+                      <span className="text-[10.5px] font-mono text-slate-500 bg-white border border-slate-200 px-3 py-1.5 rounded-xl font-bold shadow-sm">
+                        SECURE TERMINAL: ONLINE
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                      
+                      {/* Left: Input Payload details */}
+                      <div className="lg:col-span-5 bg-white border border-slate-200 rounded-2xl p-5 shadow-premium-sm space-y-4">
+                        <div className="border-b border-slate-100 pb-3">
+                          <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Aegis-9 Threat Preset Vectors</h3>
+                          <p className="text-[10.5px] text-slate-400">Select a known automated system trigger or fill out a custom mock route below.</p>
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handlePresetChange("crypto")}
+                            className={`px-2 py-2.5 rounded-lg border font-mono text-[9px] font-extrabold transition text-center flex flex-col justify-between h-20 leading-tight ${threatPreset === "crypto" ? "bg-red-50 text-red-600 border-red-200" : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100/50"}`}
+                          >
+                            <span>01 / DRAIN</span>
+                            <span className="text-[8px] opacity-75">NEXUS WALLET</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handlePresetChange("travel")}
+                            className={`px-2 py-2.5 rounded-lg border font-mono text-[9px] font-extrabold transition text-center flex flex-col justify-between h-20 leading-tight ${threatPreset === "travel" ? "bg-amber-50 text-amber-600 border-amber-200" : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100/50"}`}
+                          >
+                            <span>02 / SPEED</span>
+                            <span className="text-[8px] opacity-75">VELOCITY MISMATCH</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handlePresetChange("micro")}
+                            className={`px-2 py-2.5 rounded-lg border font-mono text-[9px] font-extrabold transition text-center flex flex-col justify-between h-20 leading-tight ${threatPreset === "micro" ? "bg-blue-50 text-blue-600 border-blue-200" : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100/50"}`}
+                          >
+                            <span>03 / PROBE</span>
+                            <span className="text-[8px] opacity-75">MICRO TRANSFERS</span>
+                          </button>
+                        </div>
+
+                        {/* Form Inputs */}
+                        <div className="space-y-3 pt-2">
+                          <div>
+                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Target Account Terminal / Merchant</label>
+                            <input
+                              type="text"
+                              value={threatInputMerchant}
+                              onChange={(e) => { setThreatInputMerchant(e.target.value); setThreatPreset("custom"); }}
+                              className="w-full bg-slate-50 border border-slate-220 text-xs px-3 py-2 rounded-xl text-slate-800 focus:bg-white focus:border-blue-500 outline-none"
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Transfer Amount ($)</label>
+                              <input
+                                type="number"
+                                value={threatInputAmount}
+                                onChange={(e) => { setThreatInputAmount(Number(e.target.value)); setThreatPreset("custom"); }}
+                                className="w-full bg-slate-50 border border-slate-220 text-xs px-3 py-2 rounded-xl text-slate-800 focus:bg-white focus:border-blue-500 outline-none"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Anomalous Risk Index</label>
+                              <input
+                                type="number"
+                                min="0"
+                                max="100"
+                                value={threatInputRiskScore}
+                                onChange={(e) => { setThreatInputRiskScore(Number(e.target.value)); setThreatPreset("custom"); }}
+                                className="w-full bg-slate-50 border border-slate-220 text-xs px-3 py-2 rounded-xl text-slate-800 focus:bg-white focus:border-blue-500 outline-none"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Risk Category Flag</label>
+                            <input
+                              type="text"
+                              value={threatInputCategory}
+                              onChange={(e) => { setThreatInputCategory(e.target.value); setThreatPreset("custom"); }}
+                              className="w-full bg-slate-50 border border-slate-220 text-xs px-3 py-2 rounded-xl text-slate-800 focus:bg-white focus:border-blue-500 outline-none"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Reported Geolocation / IP Router Node</label>
+                            <div className="grid grid-cols-2 gap-2">
+                              <input
+                                type="text"
+                                value={threatInputLocation}
+                                onChange={(e) => { setThreatInputLocation(e.target.value); setThreatPreset("custom"); }}
+                                className="w-full bg-slate-50 border border-slate-220 text-xs px-3 py-2 rounded-xl text-slate-800 focus:bg-white focus:border-blue-500 outline-none"
+                                title="Location"
+                              />
+                              <input
+                                type="text"
+                                value={threatInputIp}
+                                onChange={(e) => { setThreatInputIp(e.target.value); setThreatPreset("custom"); }}
+                                className="w-full bg-slate-50 border border-slate-220 text-xs px-3 py-2 rounded-xl text-slate-800 focus:bg-white focus:border-blue-500 outline-none"
+                                title="Device IP"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Device Fingerprint Headers</label>
+                            <input
+                              type="text"
+                              value={threatInputHeader}
+                              onChange={(e) => { setThreatInputHeader(e.target.value); setThreatPreset("custom"); }}
+                              className="w-full bg-slate-50 border border-slate-220 text-xs px-3 py-2 rounded-xl text-slate-850 focus:bg-white focus:border-blue-500 outline-none"
+                            />
+                          </div>
+
+                          <button
+                            type="button"
+                            disabled={isSandboxRunning}
+                            onClick={runSandboxForensics}
+                            className="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold text-[11px] uppercase tracking-widest py-3 rounded-xl transition duration-150 shadow-md shadow-red-600/10 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2 mt-4"
+                          >
+                            <Cpu className={`w-4 h-4 ${isSandboxRunning ? "animate-spin" : ""}`} />
+                            {isSandboxRunning ? "Interrogating Network Nodes..." : "EXECUTE FORENSIC RISK SWEEP"}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Right: Heuristic Sweeper Output Terminal */}
+                      <div className="lg:col-span-7 flex flex-col min-h-[500px]">
+                        
+                        {/* Terminal Panel */}
+                        <div className="flex-1 bg-slate-900 border border-slate-950 rounded-2xl p-5 shadow-premium-lg text-slate-300 flex flex-col justify-between font-mono">
+                          
+                          {forensicState === "IDLE" && (
+                            <div className="flex-1 flex flex-col justify-center items-center text-center p-6 space-y-4">
+                              <div className="w-12 h-12 rounded-full border-2 border-dashed border-red-500/40 flex items-center justify-center animate-spin">
+                                <Activity className="w-5 h-5 text-red-400" />
+                              </div>
+                              <div>
+                                <h4 className="text-white text-xs font-bold uppercase tracking-wider">Awaiting Forensic Command Module</h4>
+                                <p className="text-[10.5px] text-slate-500 max-w-sm mt-1 mx-auto leading-relaxed">
+                                  Threat simulation vectors are configured and awaiting payload trigger signals. Run custom AI sweeps to populate real-time intelligence tables.
+                                </p>
+                              </div>
+
+                              {/* Blueprint layout */}
+                              <div className="w-full bg-slate-950/40 border border-slate-800/60 p-4 rounded-xl text-left space-y-2 mt-4 max-w-md">
+                                <div className="text-[9px] uppercase tracking-wider text-slate-500 font-bold border-b border-slate-800/80 pb-1.5 flex justify-between">
+                                  <span>SANDBOX BLUEPRINT PREVIEW:</span>
+                                  <span className="text-blue-400">READY</span>
+                                </div>
+                                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[10px] leading-relaxed text-slate-400">
+                                  <div><span className="text-slate-600">Merchant:</span> {threatInputMerchant}</div>
+                                  <div><span className="text-slate-600">Amount:</span> ${threatInputAmount.toLocaleString()}</div>
+                                  <div><span className="text-slate-600">Route Origin:</span> {threatInputLocation}</div>
+                                  <div><span className="text-slate-600">Active IP:</span> {threatInputIp}</div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {forensicState === "SCANNING" && (
+                            <div className="flex-1 flex flex-col justify-center items-center py-10 space-y-5 text-center">
+                              <Loader2 className="w-10 h-10 text-cyan-400 animate-spin" />
+                              <div className="space-y-1.5">
+                                <h4 className="text-white text-xs font-semibold uppercase tracking-widest text-cyan-450">Active Neural Interrogation...</h4>
+                                <p className="text-[10px] text-slate-500 animate-pulse">Running advanced Gemini containment sequence & cryptographic auditing</p>
+                              </div>
+                              <div className="w-72 bg-slate-950/60 border border-slate-820 p-3 rounded-lg text-left text-[9.5px] text-slate-400 space-y-1 leading-normal select-none">
+                                <div className="text-cyan-500 font-bold">&#10095; Interposed proxy routing analysis loaded...</div>
+                                <div className="text-slate-500">&#10095; Quarantining client fingerprint logs [AES-256]...</div>
+                                <div className="text-slate-500">&#10095; Handshaking cloud security registries...</div>
+                                <div className="text-red-400 font-bold animate-pulse">&#10095; Resolving ultimate Gemini intelligence dossier...</div>
+                              </div>
+                            </div>
+                          )}
+
+                          {forensicState === "COMPLETE" && forensicPayload && (
+                            <div className="flex-1 flex flex-col justify-between space-y-5">
+                              {/* Dossier Header */}
+                              <div className="flex justify-between items-start border-b border-slate-800 pb-3">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-2.5 h-2.5 bg-rose-500 rounded-full animate-ping" />
+                                  <div>
+                                    <h3 className="text-white text-xs font-black uppercase tracking-wider flex items-center gap-1.5">
+                                      FORENSIC DOSSIER: {forensicPayload.id}
+                                    </h3>
+                                    <span className="text-[9px] text-slate-500">AEGIS INTEL SWEEP COMPLETE SUCCESSFULLY</span>
+                                  </div>
+                                </div>
+
+                                <div className="text-right">
+                                  <div className="text-[11.5px] font-black font-mono text-red-500">
+                                    RISK RATIO: {forensicPayload.riskScore}%
+                                  </div>
+                                  <span className="bg-red-950/60 text-red-400 text-[8.5px] px-1.5 py-0.2 rounded border border-red-900 font-extrabold uppercase uppercase">
+                                    {forensicPayload.verdict}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Forensic Summary */}
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="bg-slate-950/60 border border-slate-850 p-4 rounded-xl space-y-2">
+                                  <span className="text-[9.5px] text-blue-450 uppercase block font-black font-semibold">Heuristic Signal Summary</span>
+                                  <p className="text-[11px] text-slate-300 leading-relaxed font-bold">
+                                    {forensicPayload.summary}
+                                  </p>
+                                </div>
+
+                                <div className="bg-slate-950/60 border border-slate-850 p-4 rounded-xl space-y-2">
+                                  <span className="text-[9.5px] text-red-450 uppercase block font-black font-semibold">Mitigation Guidelines</span>
+                                  <p className="text-[11.5px] text-slate-350 leading-relaxed font-semibold">
+                                    {forensicPayload.recommendation}
+                                  </p>
+                                </div>
+                              </div>
+
+                              {/* Full analysis block */}
+                              <div className="bg-slate-950/45 p-4 rounded-xl border border-slate-800 space-y-1.5">
+                                <span className="text-[9.5px] text-cyan-400 uppercase tracking-widest block font-bold">Gemini Clinical Deep Reasoning</span>
+                                <p className="text-[11px] text-slate-300 tracking-wide leading-relaxed font-semibold">
+                                  {forensicPayload.reasoning}
+                                </p>
+                              </div>
+
+                              {/* Action mitigation checklist */}
+                              <div className="bg-slate-950/30 p-3 rounded-lg border border-slate-850/50 space-y-1">
+                                <span className="text-[9px] font-bold text-slate-600 block uppercase">Sandbox Countermeasures Available:</span>
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={() => { playSound("success"); addLog("SECURITY", `Revoked login session tokens linked to node IP ${threatInputIp}`); }}
+                                    className="bg-slate-800 hover:bg-slate-750 text-slate-300 text-[8.5px] px-2.5 py-1.5 rounded transition font-bold"
+                                  >
+                                    REVOKE TOKENS
+                                  </button>
+                                  <button
+                                    onClick={() => { playSound("success"); addLog("SECURITY", `Suppressed payment lines for merchant ${threatInputMerchant}`); }}
+                                    className="bg-slate-800 hover:bg-slate-750 text-slate-300 text-[8.5px] px-2.5 py-1.5 rounded transition font-bold"
+                                  >
+                                    FREEZE CAPITALS
+                                  </button>
+                                </div>
+                              </div>
+
+                            </div>
+                          )}
+
+                          {/* Footer status block */}
+                          <div className="pt-3 border-t border-slate-800/80 flex justify-between text-[9px] text-slate-500 mt-4 select-none">
+                            <span>AUTONOMIC ENVELOPE SHIELD V3.9</span>
+                            <span>FAIL-SAFE SECURITY ENABLED</span>
+                          </div>
+
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+                )}
                 {activeTab === "Compliance" && (
                   <div className="space-y-6">
                     <div>
