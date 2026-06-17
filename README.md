@@ -1,61 +1,269 @@
-# FraudShield AI — Next-Gen Agentic Fraud Case Management Platform
-### 🏆 Designed to Win: UiPath AgentHack Track 1 (UiPath Maestro Case Management)
+# FraudShield AI
 
-FraudShield AI is an enterprise-grade platform built to solve high-velocity financial fraud. By combining server-side cognitive intelligence via the **Gemini 3.5 API** with **UiPath Maestro Case Management** robotic pipelines, the system monitors transactions, investigates anomalies, generates clean evidence dossiers, manages active risk ratings, and handles critical human-in-the-loop decisions with a transparent cryptographic audit trail.
+## Next-Generation Agentic Fraud Case Management Platform
 
----
+### UiPath AgentHack 2026 — Track 1: UiPath Maestro Case Management
 
-## 🚀 Key Platform Features
+FraudShield AI is an enterprise-grade fraud detection, investigation, and case orchestration platform designed to help organizations identify suspicious activities, accelerate investigations, and maintain regulatory compliance through AI-assisted decision support and structured case management.
 
-1. **Intelligent Resilient Core (Gemini 3.5 / 3.1 Fallbacks)**
-   * Outfitted with server-side forensic analysis built directly on `@google/genai` with automatic model fallback (`gemini-3.5-flash` to `gemini-3.1-flash-lite`).
-   * Configured with exponential backoff retry mechanics to bypass 503 unavailable spikes, protecting real-time system responses.
-
-2. **Enterprise Multi-Role Interface (RBAC Portal)**
-   * High-density interactive HUD with a built-in smartphone simulator.
-   * Toggle between 5 enterprise roles to see custom, tailored control boards:
-     * **Admin**: View SQL database ERD schemas, security metrics, and API webhooks.
-     * **Fraud Analyst**: Inject live incursions and trigger Gemini forensic reports.
-     * **Investigator**: Master case Kanban list, check forensic evidence lists, and process handoffs.
-     * **Compliance Officer**: SLA verification clocks, compliance rules checklists, and automated SAR templates.
-     * **Executive Viewer**: Visual risk index indices, financial impact stats ($ saved), and SLA tracking dials.
-
-3. **UiPath Maestro Workflow Progress Timeline**
-   * Live visualizer showing active case transitions: `Intake` ➔ `Evidence Collection` ➔ `Under Scan` ➔ `Human Review` ➔ `Resolution`.
-
-4. **Transparent Audit Logging Engine**
-   * Absolute logging of systems, security overrides, and AI copilot interactions.
-
-5. **Acoustic Co-Cognitive Soundscapes**
-   * Futuristic audio synthesis feedback upon click, success, alarm, or hacker diagnostic triggers.
+The platform combines intelligent fraud analysis, human-in-the-loop review processes, transparent audit trails, and workflow orchestration into a unified operational environment.
 
 ---
 
-## 📂 Architecture Guides
-* All technical requirement plans, PRD, user stories (100+ categories), AWS infrastructure layouts, detailed agent prompts, and presentation slide structures are persisted inside **[`/DOCS_ARCH.md`](./DOCS_ARCH.md)**.
+## Problem Statement
+
+Financial institutions process millions of transactions daily, making it increasingly difficult to identify fraudulent activities quickly and accurately.
+
+Traditional fraud management systems often suffer from:
+
+* High false-positive rates
+* Slow investigation cycles
+* Fragmented case management
+* Limited audit visibility
+* Manual compliance workflows
+* Poor collaboration between teams
+
+FraudShield AI addresses these challenges by providing an intelligent case management system that assists analysts while keeping humans in control of critical decisions.
 
 ---
 
-## 🛠️ Getting Started & Local Development
+## Solution Overview
 
-### 1. Configure Secrets in `.env`
-Ensure you have the required server secret key in your workspace environment:
+FraudShield AI provides a centralized workspace where fraud analysts, investigators, compliance officers, and executives collaborate through structured workflows.
+
+The platform enables:
+
+* Real-time fraud assessment
+* AI-assisted investigation support
+* Structured case progression
+* Evidence management
+* Human review checkpoints
+* Compliance verification
+* Executive-level visibility
+* Complete audit transparency
+
+---
+
+## Key Features
+
+### Intelligent Fraud Analysis
+
+* AI-powered transaction evaluation
+* Risk classification and scoring
+* Investigation recommendations
+* Evidence summarization
+* Explainable analysis outputs
+
+### Case Lifecycle Management
+
+Every case follows a structured workflow:
+
+**Intake → Evidence Collection → Analysis → Human Review → Resolution**
+
+This approach ensures consistency, governance, and accountability throughout the investigation process.
+
+### Multi-Role Enterprise Dashboard
+
+#### Administrator
+
+* Platform monitoring
+* Security oversight
+* System analytics
+* Workflow visibility
+
+#### Fraud Analyst
+
+* Transaction investigation
+* Risk assessment
+* Case creation
+* AI-assisted analysis
+
+#### Investigator
+
+* Evidence review
+* Case handling
+* Workflow progression
+* Resolution management
+
+#### Compliance Officer
+
+* Regulatory verification
+* Audit reviews
+* Documentation checks
+* Policy compliance monitoring
+
+#### Executive Viewer
+
+* Risk intelligence dashboards
+* Financial impact reporting
+* Operational performance metrics
+* Strategic insights
+
+---
+
+## Audit & Governance
+
+FraudShield AI maintains a complete audit trail for:
+
+* User actions
+* Case updates
+* Investigation activities
+* Workflow transitions
+* Administrative changes
+* AI-generated recommendations
+
+This ensures transparency, compliance readiness, and operational accountability.
+
+---
+
+## Technical Architecture
+
+### Frontend
+
+* Next.js 15
+* TypeScript
+* Tailwind CSS
+* Framer Motion
+
+### Backend
+
+* Next.js API Routes
+* Server-side AI Processing
+* RESTful Architecture
+
+### AI Layer
+
+* Google Gemini Integration
+* Intelligent Retry Mechanism
+* Exponential Backoff
+* Automatic Model Fallback
+* Resilient Error Recovery
+
+### Security
+
+* Environment Variable Protection
+* Secure API Architecture
+* Role-Based Access Concepts
+* Audit Logging
+
+---
+
+## Resilient AI Infrastructure
+
+FraudShield AI includes a production-ready AI resilience layer designed to handle temporary service interruptions.
+
+Capabilities include:
+
+* Automatic retry handling
+* Exponential backoff strategy
+* Intelligent model fallback
+* Graceful degradation
+* High availability response generation
+
+This ensures reliable system behavior during traffic spikes and external service fluctuations.
+
+---
+
+## Getting Started
+
+### Environment Configuration
+
+Create a `.env.local` file:
+
 ```env
-GEMINI_API_KEY=your_google_genai_api_key_here
+GEMINI_API_KEY=YOUR_API_KEY
 ```
 
-### 2. Verify and Compile
-```bash
-# Run ESLint validation
-npm run lint
+### Install Dependencies
 
-# Build production assets
+```bash
+npm install
+```
+
+### Start Development Server
+
+```bash
+npm run dev
+```
+
+### Lint Project
+
+```bash
+npm run lint
+```
+
+### Production Build
+
+```bash
 npm run build
 ```
 
 ---
 
-## 🏆 Hackathon Strategic Overview
-FraudShield AI satisfies every primary criterion for the AgentHack:
-* **Business Impact**: Saves thousands in compliance fees and dramatically reduces the risk of account takeovers.
-* **Platform Completeness**: Direct model resilience layer, robust Next.js App routing, visual database schema dashboards, and a complete, clean responsive workspace.
+## Project Documentation
+
+Additional architecture, planning, and implementation resources are available in:
+
+```text
+DOCS_ARCH.md
+```
+
+Contents include:
+
+* Product Requirements Document (PRD)
+* Technical Requirements Document (TRD)
+* Backend Architecture
+* Database Design
+* User Stories
+* Workflow Specifications
+* Deployment Strategy
+* Security Architecture
+
+---
+
+## Live Demo
+
+https://fraud-shield-ai-eta.vercel.app/
+
+---
+
+## Business Impact
+
+FraudShield AI demonstrates how agentic systems can support enterprise fraud operations by:
+
+* Reducing investigation time
+* Improving analyst productivity
+* Enhancing compliance visibility
+* Increasing operational transparency
+* Supporting human decision-making
+* Creating structured case governance
+
+---
+
+## Hackathon Alignment
+
+### Business Impact & Adoption Potential
+
+Solves a real-world fraud investigation and compliance challenge faced by financial institutions.
+
+### Platform Usage
+
+Demonstrates orchestration-ready workflows compatible with UiPath Maestro Case Management.
+
+### Technical Execution
+
+Modern full-stack architecture with resilient AI infrastructure and audit-focused design.
+
+### Completeness
+
+Includes working application, documentation, architecture, and deployment.
+
+### Creativity & Innovation
+
+Combines AI-assisted fraud analysis with governed human-in-the-loop case management.
+
+---
+
+## License
+
+MIT License
