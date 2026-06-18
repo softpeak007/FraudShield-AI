@@ -20,6 +20,40 @@ export function getAiClient(): GoogleGenAI {
   return aiClient;
 }
 
+export function isApiErrorTransient(error: any): boolean {
+  if (!error) return false;
+  
+  const code = error.status || error.code || error.error?.code || error.status_code;
+  const statusStr = String(error.status || error.error?.status || "").toUpperCase();
+  
+  if (code === 503 || code === 429 || code === 408 || code === "503" || code === "429") {
+    return true;
+  }
+  
+  if (statusStr.includes("UNAVAILABLE") || statusStr.includes("RESOURCE_EXHAUSTED") || statusStr.includes("TOO_MANY_REQUESTS") || statusStr.includes("TIMEOUT")) {
+    return true;
+  }
+  
+  const messageParts = [
+    typeof error.message === 'string' ? error.message : '',
+    typeof error.toString === 'function' ? error.toString() : '',
+    JSON.stringify(error)
+  ];
+  
+  const combinedStr = messageParts.join(" ").toUpperCase();
+  
+  return combinedStr.includes("503") ||
+         combinedStr.includes("429") ||
+         combinedStr.includes("UNAVAILABLE") ||
+         combinedStr.includes("RESOURCE_EXHAUSTED") ||
+         combinedStr.includes("HIGH DEMAND") ||
+         combinedStr.includes("TEMPORARY") ||
+         combinedStr.includes("SPIKES IN DEMAND") ||
+         combinedStr.includes("OVERLOAD") ||
+         combinedStr.includes("TIMEOUT") ||
+         combinedStr.includes("DEADLINE_EXCEEDED");
+}
+
 export async function generateContentWithRetry(
   client: GoogleGenAI,
   options: {
@@ -28,7 +62,11 @@ export async function generateContentWithRetry(
     config?: any;
   }
 ) {
-  const modelsToTry = [options.model, "gemini-3.1-flash-lite"];
+  const modelsToTry = Array.from(new Set([
+    options.model, 
+    "gemini-3.1-flash-lite", 
+    "gemini-flash-latest"
+  ]));
   const maxRetries = 2; // 2 retries per model
 
   let lastError: any = null;
@@ -52,13 +90,7 @@ export async function generateContentWithRetry(
         lastError = error;
         console.warn(`Attempt ${attempt + 1} for model ${model} failed:`, error.message || error);
         
-        // Treat as transient if we get standard error codes or network drops
-        const errorStr = String(error.message || error).toUpperCase();
-        const isTransient = errorStr.includes("503") || 
-                            errorStr.includes("429") || 
-                            errorStr.includes("UNAVAILABLE") ||
-                            error.status === 503 || 
-                            error.status === 429;
+        const isTransient = isApiErrorTransient(error);
                             
         if (!isTransient && attempt === 0) {
           // If it's a structural or schema validation/config error, do not retry this model
