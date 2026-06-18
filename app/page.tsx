@@ -133,6 +133,14 @@ export default function Page() {
   const [currentTime, setCurrentTime] = useState("18:05:00");
   const [globalSearch, setGlobalSearch] = useState("");
   const [notifyQueue, setNotifyQueue] = useState<string | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsMounted(true);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Filter & Sorted states for Case Management
   const [searchText, setSearchText] = useState("");
@@ -1095,22 +1103,24 @@ export default function Page() {
                           </div>
                           <p className="text-[10.5px] text-slate-400 mb-4 leading-normal">Interactive ledger measuring raw checkout volume vs total anomalies flagged.</p>
                         </div>
-                        <div className="h-52 w-full mt-2">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={hourlyVolumeData}>
-                              <defs>
-                                <linearGradient id="colorVol" x1="0" y1="0" x2="0" y2="1">
-                                  <stop offset="5%" stopColor="#2563EB" stopOpacity={0.2}/>
-                                  <stop offset="95%" stopColor="#2563EB" stopOpacity={0}/>
-                                </linearGradient>
-                              </defs>
-                              <XAxis dataKey="time" stroke="#94A3B8" fontSize={9} tickLine={false} />
-                              <YAxis stroke="#94A3B8" fontSize={9} tickLine={false} />
-                              <Tooltip contentStyle={{ fontSize: "11px", borderRadius: "12px", border: "1px solid #E2E8F0" }} />
-                              <Area type="monotone" dataKey="volume" stroke="#2563EB" strokeWidth={2.5} fillOpacity={1} fill="url(#colorVol)" name="Vol ($)" />
-                              <Area type="monotone" dataKey="fraudCases" stroke="#EF4444" strokeWidth={1.5} fill="none" name="Anomaly Count" />
-                            </AreaChart>
-                          </ResponsiveContainer>
+                        <div className="w-full min-h-[208px] h-52 mt-2 min-w-0">
+                          {isMounted && (
+                            <ResponsiveContainer width="100%" height={208} minWidth={0}>
+                              <AreaChart data={hourlyVolumeData}>
+                                <defs>
+                                  <linearGradient id="colorVol" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#2563EB" stopOpacity={0.2}/>
+                                    <stop offset="95%" stopColor="#2563EB" stopOpacity={0}/>
+                                  </linearGradient>
+                                </defs>
+                                <XAxis dataKey="time" stroke="#94A3B8" fontSize={9} tickLine={false} />
+                                <YAxis stroke="#94A3B8" fontSize={9} tickLine={false} />
+                                <Tooltip contentStyle={{ fontSize: "11px", borderRadius: "12px", border: "1px solid #E2E8F0" }} />
+                                <Area type="monotone" dataKey="volume" stroke="#2563EB" strokeWidth={2.5} fillOpacity={1} fill="url(#colorVol)" name="Vol ($)" />
+                                <Area type="monotone" dataKey="fraudCases" stroke="#EF4444" strokeWidth={1.5} fill="none" name="Anomaly Count" />
+                              </AreaChart>
+                            </ResponsiveContainer>
+                          )}
                         </div>
                       </div>
 
@@ -1126,19 +1136,21 @@ export default function Page() {
                           </div>
                           <p className="text-[10.5px] text-slate-400 mb-4 leading-normal">Raw counting of distributed automated script attacks detected per weekday interval.</p>
                         </div>
-                        <div className="h-52 w-full mt-2">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={spikeTrends}>
-                              <XAxis dataKey="name" stroke="#94A3B8" fontSize={9} tickLine={false} />
-                              <YAxis stroke="#94A3B8" fontSize={9} tickLine={false} />
-                              <Tooltip contentStyle={{ fontSize: "11px", borderRadius: "12px", border: "1px solid #E2E8F0" }} />
-                              <Bar dataKey="attempts" fill="#F59E0B" radius={[4, 4, 0, 0]}>
-                                {spikeTrends.map((_, index) => (
-                                  <Cell key={`cell-${index}`} fill={index === 5 ? "#EF4444" : "#F59E0B"} />
-                                ))}
-                              </Bar>
-                            </BarChart>
-                          </ResponsiveContainer>
+                        <div className="w-full min-h-[208px] h-52 mt-2 min-w-0">
+                          {isMounted && (
+                            <ResponsiveContainer width="100%" height={208} minWidth={0}>
+                              <BarChart data={spikeTrends}>
+                                <XAxis dataKey="name" stroke="#94A3B8" fontSize={9} tickLine={false} />
+                                <YAxis stroke="#94A3B8" fontSize={9} tickLine={false} />
+                                <Tooltip contentStyle={{ fontSize: "11px", borderRadius: "12px", border: "1px solid #E2E8F0" }} />
+                                <Bar dataKey="attempts" fill="#F59E0B" radius={[4, 4, 0, 0]}>
+                                  {spikeTrends.map((_, index) => (
+                                    <Cell key={`cell-${index}`} fill={index === 5 ? "#EF4444" : "#F59E0B"} />
+                                  ))}
+                                </Bar>
+                              </BarChart>
+                            </ResponsiveContainer>
+                          )}
                         </div>
                       </div>
 
@@ -1155,23 +1167,25 @@ export default function Page() {
                           <p className="text-[10.5px] text-slate-400 mb-4 leading-normal">Visual mapping of overall telemetry ledger separated by computed threat levels.</p>
                         </div>
                         <div className="h-52 w-full mt-2 flex flex-col md:flex-row items-center justify-around">
-                          <div className="w-32 h-32">
-                            <ResponsiveContainer width="100%" height="100%">
-                              <PieChart>
-                                <Pie
-                                  data={distributionScore}
-                                  innerRadius={38}
-                                  outerRadius={56}
-                                  paddingAngle={3}
-                                  dataKey="value"
-                                >
-                                  {distributionScore.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={entry.color} />
-                                  ))}
-                                </Pie>
-                                <Tooltip contentStyle={{ fontSize: "10px", borderRadius: "8px" }} />
-                              </PieChart>
-                            </ResponsiveContainer>
+                          <div className="w-32 h-32 min-h-[128px] min-w-0">
+                            {isMounted && (
+                              <ResponsiveContainer width="100%" height={128} minWidth={0}>
+                                <PieChart>
+                                  <Pie
+                                    data={distributionScore}
+                                    innerRadius={38}
+                                    outerRadius={56}
+                                    paddingAngle={3}
+                                    dataKey="value"
+                                  >
+                                    {distributionScore.map((entry, index) => (
+                                      <Cell key={`cell-${index}`} fill={entry.color} />
+                                    ))}
+                                  </Pie>
+                                  <Tooltip contentStyle={{ fontSize: "10px", borderRadius: "8px" }} />
+                                </PieChart>
+                              </ResponsiveContainer>
+                            )}
                           </div>
                           <div className="space-y-1.5 text-xs text-slate-600 font-medium md:flex-1 md:pl-4">
                             {distributionScore.map((item, idx) => (
@@ -1786,36 +1800,38 @@ export default function Page() {
                           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800">24-Hour Threat Blocked Volume ($)</h3>
                           <p className="text-[10px] text-slate-400">Comparing total incoming fraudulent value vs capital successfully blocked.</p>
                         </div>
-                        <div className="h-64 font-mono text-xs">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart
-                              data={[
-                                { hour: "02:00", Outflow: 12000, Blocked: 12000 },
-                                { hour: "06:00", Outflow: 38000, Blocked: 38000 },
-                                { hour: "10:00", Outflow: 145000, Blocked: 145000 },
-                                { hour: "14:00", Outflow: 114000, Blocked: 114000 },
-                                { hour: "18:00", Outflow: 124000, Blocked: 124000 },
-                                { hour: "22:00", Outflow: 52250, Blocked: 52250 }
-                              ]}
-                              margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-                            >
-                              <defs>
-                                <linearGradient id="colorO" x1="0" y1="0" x2="0" y2="1">
-                                  <stop offset="5%" stopColor="#EF4444" stopOpacity={0.1}/>
-                                  <stop offset="95%" stopColor="#EF4444" stopOpacity={0}/>
-                                </linearGradient>
-                                <linearGradient id="colorB" x1="0" y1="0" x2="0" y2="1">
-                                  <stop offset="5%" stopColor="#10B981" stopOpacity={0.2}/>
-                                  <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
-                                </linearGradient>
-                              </defs>
-                              <XAxis dataKey="hour" stroke="#94A3B8" />
-                              <YAxis stroke="#94A3B8" />
-                              <Tooltip />
-                              <Area type="monotone" dataKey="Outflow" name="Unsecured Threats" stroke="#EF4444" fillOpacity={1} fill="url(#colorO)" strokeWidth={1.5} />
-                              <Area type="monotone" dataKey="Blocked" name="Blocked Capital" stroke="#10B981" fillOpacity={1} fill="url(#colorB)" strokeWidth={2} />
-                            </AreaChart>
-                          </ResponsiveContainer>
+                        <div className="w-full min-h-[256px] h-64 font-mono text-xs min-w-0">
+                          {isMounted && (
+                            <ResponsiveContainer width="100%" height={256} minWidth={0}>
+                              <AreaChart
+                                data={[
+                                  { hour: "02:00", Outflow: 12000, Blocked: 12000 },
+                                  { hour: "06:00", Outflow: 38000, Blocked: 38000 },
+                                  { hour: "10:00", Outflow: 145000, Blocked: 145000 },
+                                  { hour: "14:00", Outflow: 114000, Blocked: 114000 },
+                                  { hour: "18:00", Outflow: 124000, Blocked: 124000 },
+                                  { hour: "22:00", Outflow: 52250, Blocked: 52250 }
+                                ]}
+                                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                              >
+                                <defs>
+                                  <linearGradient id="colorO" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#EF4444" stopOpacity={0.1}/>
+                                    <stop offset="95%" stopColor="#EF4444" stopOpacity={0}/>
+                                  </linearGradient>
+                                  <linearGradient id="colorB" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#10B981" stopOpacity={0.2}/>
+                                    <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
+                                  </linearGradient>
+                                </defs>
+                                <XAxis dataKey="hour" stroke="#94A3B8" />
+                                <YAxis stroke="#94A3B8" />
+                                <Tooltip />
+                                <Area type="monotone" dataKey="Outflow" name="Unsecured Threats" stroke="#EF4444" fillOpacity={1} fill="url(#colorO)" strokeWidth={1.5} />
+                                <Area type="monotone" dataKey="Blocked" name="Blocked Capital" stroke="#10B981" fillOpacity={1} fill="url(#colorB)" strokeWidth={2} />
+                              </AreaChart>
+                            </ResponsiveContainer>
+                          )}
                         </div>
                       </div>
 
@@ -1824,28 +1840,30 @@ export default function Page() {
                           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800">Target Volume Distribution by Merchant</h3>
                           <p className="text-[10px] text-slate-400">Total detected fraudulent attempts mapped across key commercial tunnels.</p>
                         </div>
-                        <div className="h-64 font-mono text-xs">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <BarChart
-                              data={[
-                                { name: "NEXUS CRYPTO", value: 245000 },
-                                { name: "PARIS TELECOM", value: 124000 },
-                                { name: "P2P TRANSFER", value: 62000 },
-                                { name: "COIN VALVES", value: 54250 }
-                              ]}
-                              margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-                            >
-                              <XAxis dataKey="name" stroke="#94A3B8" />
-                              <YAxis stroke="#94A3B8" />
-                              <Tooltip />
-                              <Bar dataKey="value" name="Exposure ($)" fill="#3B82F6" radius={[4, 4, 0, 0]}>
-                                <Cell fill="#F43F5E" />
-                                <Cell fill="#F59E0B" />
-                                <Cell fill="#3B82F6" />
-                                <Cell fill="#10B981" />
-                              </Bar>
-                            </BarChart>
-                          </ResponsiveContainer>
+                        <div className="w-full min-h-[256px] h-64 font-mono text-xs min-w-0">
+                          {isMounted && (
+                            <ResponsiveContainer width="100%" height={256} minWidth={0}>
+                              <BarChart
+                                data={[
+                                  { name: "NEXUS CRYPTO", value: 245000 },
+                                  { name: "PARIS TELECOM", value: 124000 },
+                                  { name: "P2P TRANSFER", value: 62000 },
+                                  { name: "COIN VALVES", value: 54250 }
+                                ]}
+                                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                              >
+                                <XAxis dataKey="name" stroke="#94A3B8" />
+                                <YAxis stroke="#94A3B8" />
+                                <Tooltip />
+                                <Bar dataKey="value" name="Exposure ($)" fill="#3B82F6" radius={[4, 4, 0, 0]}>
+                                  <Cell fill="#F43F5E" />
+                                  <Cell fill="#F59E0B" />
+                                  <Cell fill="#3B82F6" />
+                                  <Cell fill="#10B981" />
+                                </Bar>
+                              </BarChart>
+                            </ResponsiveContainer>
+                          )}
                         </div>
                       </div>
                     </div>
