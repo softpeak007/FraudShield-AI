@@ -123,6 +123,7 @@ export default function Page() {
   // Theme and UI States
   const [viewportMode, setViewportMode] = useState<"desktop" | "iphone" | "android">("desktop");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [copilotOpen, setCopilotOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<
     "Dashboard" | "Fraud Alerts" | "Cases" | "Analytics" | "Risk Intelligence" | "Compliance" | "Settings"
   >("Dashboard");
@@ -888,6 +889,14 @@ export default function Page() {
               {hapticsEnabled ? <Volume2 className="w-4 h-4 text-blue-400" /> : <VolumeX className="w-4 h-4 text-slate-500" />}
             </button>
 
+            <button
+              onClick={() => { setCopilotOpen(!copilotOpen); playSound("click"); }}
+              className="lg:hidden p-2 hover:bg-white/5 rounded-xl border border-white/10 text-slate-400 transition"
+              title="Toggle Aegis AI Copilot panel"
+            >
+              <Sparkles className={`w-4 h-4 ${copilotOpen ? "text-blue-400 animate-pulse" : "text-slate-400"}`} />
+            </button>
+
             <img
               src={`https://api.dicebear.com/7.x/bottts/svg?seed=${userRole}&backgroundColor=0f172a`}
               alt="User bot icon"
@@ -931,7 +940,7 @@ export default function Page() {
                       return (
                         <button
                           key={tab.id}
-                          onClick={() => { playSound("click"); setActiveTab(tab.id as any); setSidebarOpen(false); }}
+                          onClick={() => { playSound("click"); setActiveTab(tab.id as any); setSidebarOpen(false); setCopilotOpen(false); }}
                           className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition duration-150 ${active ? "bg-blue-600 text-white shadow-md shadow-blue-600/10" : "text-slate-400 hover:bg-white/5 hover:text-white"}`}
                         >
                           <div className="flex items-center gap-2.5">
@@ -964,7 +973,7 @@ export default function Page() {
                       return (
                         <button
                           key={tab.id}
-                          onClick={() => { playSound("click"); setActiveTab(tab.id as any); setSidebarOpen(false); }}
+                          onClick={() => { playSound("click"); setActiveTab(tab.id as any); setSidebarOpen(false); setCopilotOpen(false); }}
                           className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition duration-150 ${active ? "bg-blue-600 text-white" : "text-slate-400 hover:bg-white/5 hover:text-white"}`}
                         >
                           <div className="flex items-center gap-2.5">
@@ -2467,8 +2476,16 @@ export const securityTraceAlerts = pgTable("security_trace_alerts", {
 
             </main>
 
+            {/* Background overlay for Copilot drawer */}
+            {copilotOpen && (
+              <div 
+                className="fixed inset-0 bg-black/60 z-30 lg:hidden"
+                onClick={() => setCopilotOpen(false)}
+              />
+            )}
+
             {/* ================= EXTRA RIGHT AREA: AI COPILOT INTERACTION CONSOLE ================= */}
-            <aside className="w-80 bg-white border-l border-slate-200 flex flex-col justify-between shrink-0 select-none shadow-premium-sm">
+            <aside className={`fixed lg:static inset-y-0 right-0 z-40 lg:z-auto w-80 bg-white border-l border-slate-200 flex flex-col justify-between shrink-0 select-none shadow-premium-sm transition-transform duration-300 lg:translate-x-0 ${copilotOpen ? "translate-x-0" : "translate-x-full"}`} style={{ height: "calc(100vh - 4rem)", top: "4rem" }}>
               
               {/* Copilot Header */}
               <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-[#0B1220] text-white">
@@ -2760,7 +2777,7 @@ export const securityTraceAlerts = pgTable("security_trace_alerts", {
                     </div>
 
                     {/* Messages */}
-                    <div className="flex-1 overflow-y-auto space-y-3 py-3 select-text max-h-[380px] custom-scrollbar text-xs">
+                    <div className="flex-1 overflow-y-auto space-y-3 py-3 select-text custom-scrollbar text-xs min-h-[160px]">
                       {chatMessages.map((msg, i) => (
                         <div key={i} className={`flex flex-col ${msg.role === "user" ? "items-end" : "items-start"}`}>
                           <div className={`p-3 rounded-2xl ${msg.role === "user" ? "bg-blue-600 text-white rounded-tr-none font-semibold" : "bg-white text-slate-800 border border-slate-200 rounded-tl-none font-medium leading-relaxed"}`}>
