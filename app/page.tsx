@@ -779,6 +779,19 @@ export default function Page() {
     setBulkList([]);
   };
 
+  if (!isMounted) {
+    return (
+      <div className="min-h-screen bg-[#0B1220] flex items-center justify-center font-sans">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div>
+          <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 font-mono animate-pulse">
+            LOADING SECURE PROTOCOL...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-[#1E293B] antialiased flex flex-col selection:bg-blue-200">
       
