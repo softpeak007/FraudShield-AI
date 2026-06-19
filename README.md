@@ -55,6 +55,31 @@ npm run build
 
 ---
 
+## 🌐 GitHub & Vercel Deployment Instructions
+
+Follow these simple steps to deploy FraudShield AI to GitHub and Vercel (using the AI Studio Platform Integration or manual export):
+
+### 1. Export to GitHub
+* Since the workspace operates in a sandboxed, secure environment, you can export the codebase directly to your personal GitHub repository.
+* Go to the **Settings** menu inside Google AI Studio.
+* Select **Export to GitHub** or **Download ZIP**.
+* Follow the on-screen prompt to authorize and push this clean, verified build to your main/master branch on GitHub.
+
+### 2. Deploy to Vercel
+* Log in to your [Vercel Dashboard](https://vercel.com).
+* Click **Add New** ➔ **Project**.
+* Import the repository you just exported/pushed to GitHub.
+* **Environment Variables**: Under the Project Settings, add your environment variable:
+  * Key: `GEMINI_API_KEY`
+  * Value: `[Your Gemini API Key]` (Vercel secures this secret on their edge servers).
+* **Build Command**: Vercel will automatically detect Next.js and use:
+  * Build Command: `npm run build`
+  * Output Directory: `.next` (pushed to Vercel Edge CDN).
+  * Install Command: `npm install`
+* Click **Deploy**. Vercel will compile the Next.js App Router static pages, prepare edge serverless handlers for the Gemini API proxy endpoints, and provide you with a live production URL!
+
+---
+
 ## 🏆 Hackathon Strategic Overview
 FraudShield AI satisfies every primary criterion for the AgentHack:
 * **Business Impact**: Saves thousands in compliance fees and dramatically reduces the risk of account takeovers.
