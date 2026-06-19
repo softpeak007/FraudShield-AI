@@ -2,7 +2,7 @@ import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  distDir: 'dist',
+  distDir: process.env.VERCEL ? '.next' : 'dist',
   eslint: {
     ignoreDuringBuilds: true,
   },
