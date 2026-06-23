@@ -1,86 +1,70 @@
-# FraudShield AI — Next-Gen Agentic Fraud Case Management Platform
-### 🏆 Designed to Win: UiPath AgentHack Track 1 (UiPath Maestro Case Management)
+# FraudShield AI (V4.9 PRO) — Production Release Blueprint
 
-FraudShield AI is an enterprise-grade platform built to solve high-velocity financial fraud. By combining server-side cognitive intelligence via the **Gemini 3.5 API** with **UiPath Maestro Case Management** robotic pipelines, the system monitors transactions, investigates anomalies, generates clean evidence dossiers, manages active risk ratings, and handles critical human-in-the-loop decisions with a transparent cryptographic audit trail.
-
----
-
-## 🚀 Key Platform Features
-
-1. **Intelligent Resilient Core (Gemini 3.5 / 3.1 Fallbacks)**
-   * Outfitted with server-side forensic analysis built directly on `@google/genai` with automatic model fallback (`gemini-3.5-flash` to `gemini-3.1-flash-lite`).
-   * Configured with exponential backoff retry mechanics to bypass 503 unavailable spikes, protecting real-time system responses.
-
-2. **Enterprise Multi-Role Interface (RBAC Portal)**
-   * High-density interactive HUD with a built-in smartphone simulator.
-   * Toggle between 5 enterprise roles to see custom, tailored control boards:
-     * **Admin**: View SQL database ERD schemas, security metrics, and API webhooks.
-     * **Fraud Analyst**: Inject live incursions and trigger Gemini forensic reports.
-     * **Investigator**: Master case Kanban list, check forensic evidence lists, and process handoffs.
-     * **Compliance Officer**: SLA verification clocks, compliance rules checklists, and automated SAR templates.
-     * **Executive Viewer**: Visual risk index indices, financial impact stats ($ saved), and SLA tracking dials.
-
-3. **UiPath Maestro Workflow Progress Timeline**
-   * Live visualizer showing active case transitions: `Intake` ➔ `Evidence Collection` ➔ `Under Scan` ➔ `Human Review` ➔ `Resolution`.
-
-4. **Transparent Audit Logging Engine**
-   * Absolute logging of systems, security overrides, and AI copilot interactions.
-
-5. **Acoustic Co-Cognitive Soundscapes**
-   * Futuristic audio synthesis feedback upon click, success, alarm, or hacker diagnostic triggers.
+An enterprise-ready, military-grade autonomous cybersecurity threat detection portal powered by the Aegis-9 AI architecture. FraudShield AI performs cognitive real-time monitoring of commercial transactions, identifies vulnerabilities, flags potential anomalies with precise dynamic threat indexes, and offers interactive mitigation controls to suppress fraud seamlessly.
 
 ---
 
-## 📂 Architecture Guides
-* All technical requirement plans, PRD, user stories (100+ categories), AWS infrastructure layouts, detailed agent prompts, and presentation slide structures are persisted inside **[`/DOCS_ARCH.md`](./DOCS_ARCH.md)**.
+### Key Technical Achievements
+
+*   **Zero-Trust Authorization Gateway**: Integrated an advanced cryptographic simulation screen prompting secure operator credentials (`SEC-OPS-09`) with a streamlined telemetry log stream to emulate real-world compliance operations.
+*   **Fully Functional Monitoring Bridge**: Direct interactive dashboards containing network logs, live telemetry feeds, smart alert dispatch logs, and visual charting blocks representing daily risk volumes.
+*   **Aegis-9 AI Assistant Sidecar**: A server-side intelligence companion ready to ingest contextual system inputs and dispatch optimized recovery handshakes.
+*   **Complete Vercel and GitHub Compatibility**: Out-of-the-box support for strict Next.js App Router compilation, static asset configurations, secure environment headers, and flexible deployment rails.
 
 ---
 
-## 🛠️ Getting Started & Local Development
+### Technology Stack Blueprint
 
-### 1. Configure Secrets in `.env`
-Ensure you have the required server secret key in your workspace environment:
-```env
-GEMINI_API_KEY=your_google_genai_api_key_here
-```
+*   **Framework**: Next.js 15+ (App Router, fully optimized Server & Client split architecture)
+*   **Styles & Theme**: Tailwind CSS v4 + Motion animations (styled purely via utility constructs onto raw Slate-900 surfaces)
+*   **Visual Data Telemetry**: Recharts & Lucide React Icon System
+*   **Package Engine**: npm + ESLint with strict type systems
 
-### 2. Verify and Compile
+---
+
+### Installation and Workspace Run
+
 ```bash
-# Run ESLint validation
-npm run lint
+# 1. Clone the repository and navigate into workspace
+cd fraudshield-ai
 
-# Build production assets
+# 2. Populate environment specifications
+cp .env.example .env
+
+# 3. Install fully pinned node modules and compiler blocks
+npm install
+
+# 4. Initiate local developer workspace with Hot Module Replacement bypassed
+npm run dev
+
+# 5. Build optimized static layouts and server-side routes
 npm run build
+
+# 6. Run lint-check engines to audit system code quality
+npm run lint
 ```
 
 ---
 
-## 🌐 GitHub & Vercel Deployment Instructions
+### Environment Variable Blueprints (`.env.example`)
 
-Follow these simple steps to deploy FraudShield AI to GitHub and Vercel (using the AI Studio Platform Integration or manual export):
+Review the `.env.example` file in the project root to configure the following keys securely for your deployment pipeline:
 
-### 1. Export to GitHub
-* Since the workspace operates in a sandboxed, secure environment, you can export the codebase directly to your personal GitHub repository.
-* Go to the **Settings** menu inside Google AI Studio.
-* Select **Export to GitHub** or **Download ZIP**.
-* Follow the on-screen prompt to authorize and push this clean, verified build to your main/master branch on GitHub.
-
-### 2. Deploy to Vercel
-* Log in to your [Vercel Dashboard](https://vercel.com).
-* Click **Add New** ➔ **Project**.
-* Import the repository you just exported/pushed to GitHub.
-* **Environment Variables**: Under the Project Settings, add your environment variable:
-  * Key: `GEMINI_API_KEY`
-  * Value: `[Your Gemini API Key]` (Vercel secures this secret on their edge servers).
-* **Build Command**: Vercel will automatically detect Next.js and use:
-  * Build Command: `npm run build`
-  * Output Directory: `.next` (pushed to Vercel Edge CDN).
-  * Install Command: `npm install`
-* Click **Deploy**. Vercel will compile the Next.js App Router static pages, prepare edge serverless handlers for the Gemini API proxy endpoints, and provide you with a live production URL!
+*   `GEMINI_API_KEY`: Secrets credential required by the server-side Next.js post handler to authenticate with high-level cognitive models.
+*   `APP_URL`: Canonical root authority address used to enforce Strict Transport Security headers in production.
 
 ---
 
-## 🏆 Hackathon Strategic Overview
-FraudShield AI satisfies every primary criterion for the AgentHack:
-* **Business Impact**: Saves thousands in compliance fees and dramatically reduces the risk of account takeovers.
-* **Platform Completeness**: Direct model resilience layer, robust Next.js App routing, visual database schema dashboards, and a complete, clean responsive workspace.
+### Deployment Vectors
+
+#### Deploying on Vercel
+Deploying to Vercel is streamlined with zero extra tuning required:
+1. Push your audited repository to any personal GitHub workspace.
+2. Link your repository inside the Vercel Operator interface.
+3. Bind your `GEMINI_API_KEY` under the advanced Environment Variables section.
+4. Click **Deploy**. Vercel detects the Next.js target and compiles with optimized caching rules automatically.
+
+#### Deploying on Google Cloud Run
+1. Containerize using modern multi-stage Dockerfiles.
+2. Publish built image directly to Artifact Registry.
+3. Deploy onto managed serverless clusters with the `PORT=3000` configuration mapped securely behind Nginx reverse proxies.

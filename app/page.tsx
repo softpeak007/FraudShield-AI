@@ -47,7 +47,12 @@ import {
   CheckSquare,
   HelpCircle,
   Settings,
-  Menu
+  Menu,
+  Upload,
+  Paperclip,
+  Trash2,
+  Plus,
+  LogOut
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import {
@@ -87,6 +92,7 @@ interface Alert {
   deviceHeader: string;
   analystNotes?: string;
   timeline?: { time: string; event: string; status: string }[];
+  evidenceFiles?: string[];
 }
 
 // Static deterministic sequence counters declared outside of component body for hook purity
@@ -119,6 +125,22 @@ function generateSandboxCustomer() {
   return "Sandbox Account ID: " + Math.floor(Math.random() * 1000 + 1);
 }
 
+function generateSimulatorTxId() {
+  return "TX-" + Math.floor(Math.random() * 9000 + 1000);
+}
+
+function generateSimulatorCaseId() {
+  return "CASE-" + Math.floor(Math.random() * 9000 + 1000);
+}
+
+function generateSimulatorToken() {
+  return "uipath-orchestrated-tok-" + Math.floor(Math.random() * 900000 + 100000);
+}
+
+function generateSimulatorSarHash() {
+  return `sha255-sar-inc-${Math.floor(Math.random() * 90000 + 10000)}`;
+}
+
 export default function Page() {
   // Theme and UI States
   const [viewportMode, setViewportMode] = useState<"desktop" | "iphone" | "android">("desktop");
@@ -136,6 +158,404 @@ export default function Page() {
   const [notifyQueue, setNotifyQueue] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
 
+  // Corporate Credential Sign-in States
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loginOperatorId, setLoginOperatorId] = useState("SEC-OPS-09");
+  const [loginPasscode, setLoginPasscode] = useState("••••••••");
+  const [loginState, setLoginState] = useState<"IDLE" | "AUTHENTICATING" | "DECRYPTING" | "ESTABLISHING" | "SUCCESS">("IDLE");
+  const [loginLogs, setLoginLogs] = useState<string[]>([]);
+
+  // File drag-and-drop state & ref
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  // AI Multi-Agent Pipeline Simulator States
+  const [isAgentSimulatorOpen, setIsAgentSimulatorOpen] = useState(false);
+  const [simulatorPreset, setSimulatorPreset] = useState<"crypto" | "travel" | "micro" | "custom">("crypto");
+  const [simulatorName, setSimulatorName] = useState("Hiroshi Tanaka");
+  const [simulatorMerchant, setSimulatorMerchant] = useState("COINBASE LIQUIDITY ACCT");
+  const [simulatorAmount, setSimulatorAmount] = useState(12450.00);
+  const [simulatorLocation, setSimulatorLocation] = useState("Tokyo, JP (VPN Route)");
+  const [simulatorIp, setSimulatorIp] = useState("103.4.18.25");
+  const [simulatorHeader, setSimulatorHeader] = useState("Mozilla/5.0 (Macintosh; Intel Mac OS X 14)");
+  const [simulatorStep, setSimulatorStep] = useState<"IDLE" | "INTAKE" | "INVESTIGATION" | "GRAPH" | "RISK" | "REPORT" | "UIPATH" | "RESOLVED">("IDLE");
+  const [simulatorLogs, setSimulatorLogs] = useState<string[]>([]);
+  const [pipelineProgress, setPipelineProgress] = useState(0);
+
+  // Manual Case Creation States
+  const [isCreateCaseOpen, setIsCreateCaseOpen] = useState(false);
+  const [newCaseCustomer, setNewCaseCustomer] = useState("");
+  const [newCaseMerchant, setNewCaseMerchant] = useState("");
+  const [newCaseAmount, setNewCaseAmount] = useState("");
+  const [newCaseCategory, setNewCaseCategory] = useState("Card Testing");
+  const [newCaseLocation, setNewCaseLocation] = useState("United States");
+  const [newCaseRiskScore, setNewCaseRiskScore] = useState(65);
+  const [newCaseDeviceIp, setNewCaseDeviceIp] = useState("192.168.1.100");
+  const [newCaseDeviceHeader, setNewCaseDeviceHeader] = useState("Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0");
+
+  const handleSimPresetChange = (preset: "crypto" | "travel" | "micro" | "custom") => {
+    setSimulatorPreset(preset);
+    playSound("click");
+    if (preset === "crypto") {
+      setSimulatorName("Hiroshi Tanaka");
+      setSimulatorMerchant("COINBASE LIQUIDITY ACCT");
+      setSimulatorAmount(12450.00);
+      setSimulatorLocation("Tokyo, JP (VPN Route)");
+      setSimulatorIp("103.4.18.25");
+      setSimulatorHeader("Mozilla/5.0 (Macintosh; Intel Mac OS X 14)");
+    } else if (preset === "travel") {
+      setSimulatorName("Chloe Dubois");
+      setSimulatorMerchant("SNCF RAILWAYS PARIS");
+      setSimulatorAmount(345.80);
+      setSimulatorLocation("London, UK (Geo-Velocity Jump)");
+      setSimulatorIp("195.154.122.9");
+      setSimulatorHeader("Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X)");
+    } else if (preset === "micro") {
+      setSimulatorName("Alastair Ward");
+      setSimulatorMerchant("GOOGLE TEMPORARY HOLD");
+      setSimulatorAmount(1.00);
+      setSimulatorLocation("Lagos, NG (Proxy Pool)");
+      setSimulatorIp("102.89.3.44");
+      setSimulatorHeader("OkHttp/4.12.0 Script Client");
+    }
+    setSimulatorStep("IDLE");
+    setSimulatorLogs([]);
+    setPipelineProgress(0);
+  };
+
+  const runAgentMaverickPipeline = async (
+    overridePreset?: "crypto" | "travel" | "micro" | "custom",
+    overrideName?: string,
+    overrideMerchant?: string,
+    overrideAmount?: number,
+    overrideLocation?: string,
+    overrideIp?: string,
+    overrideHeader?: string,
+    existingAlertId?: string
+  ) => {
+    if (simulatorStep !== "IDLE" && simulatorStep !== "RESOLVED") return;
+    playSound("click");
+    setSimulatorStep("INTAKE");
+    setPipelineProgress(10);
+
+    const isPresetValid = (p: any): p is "crypto" | "travel" | "micro" | "custom" => {
+      return ["crypto", "travel", "micro", "custom"].includes(p);
+    };
+
+    const activePreset = isPresetValid(overridePreset) ? overridePreset : simulatorPreset;
+    const activeName = (typeof overrideName === "string" && overrideName) ? overrideName : simulatorName;
+    const activeMerchant = (typeof overrideMerchant === "string" && overrideMerchant) ? overrideMerchant : simulatorMerchant;
+    const activeAmount = (typeof overrideAmount === "number" && !isNaN(overrideAmount)) ? overrideAmount : simulatorAmount;
+    const activeLocation = (typeof overrideLocation === "string" && overrideLocation) ? overrideLocation : simulatorLocation;
+    const activeIp = (typeof overrideIp === "string" && overrideIp) ? overrideIp : simulatorIp;
+    const activeHeader = (typeof overrideHeader === "string" && overrideHeader) ? overrideHeader : simulatorHeader;
+
+    if (isPresetValid(overridePreset)) setSimulatorPreset(overridePreset);
+    if (typeof overrideName === "string" && overrideName) setSimulatorName(overrideName);
+    if (typeof overrideMerchant === "string" && overrideMerchant) setSimulatorMerchant(overrideMerchant);
+    if (typeof overrideAmount === "number" && !isNaN(overrideAmount)) setSimulatorAmount(overrideAmount);
+    if (typeof overrideLocation === "string" && overrideLocation) setSimulatorLocation(overrideLocation);
+    if (typeof overrideIp === "string" && overrideIp) setSimulatorIp(overrideIp);
+    if (typeof overrideHeader === "string" && overrideHeader) setSimulatorHeader(overrideHeader);
+
+    // Get Case IDs
+    let targetAlertId = existingAlertId;
+    let targetCaseId = "";
+
+    setSimulatorLogs(["[INTAKE AGENT] Initiating transaction ingestion layer...", "[INTAKE AGENT] Ingesting transaction from customer: " + activeName]);
+    await new Promise(resolve => setTimeout(resolve, 1200));
+
+    // If there is no existing alert, we create and store it in the database now!
+    if (!targetAlertId) {
+      const { randId, randCase } = getNextAlertIds();
+      targetAlertId = randId;
+      targetCaseId = randCase;
+
+      const initialAlert: Alert = {
+        id: targetAlertId,
+        customer: activeName,
+        merchant: activeMerchant,
+        amount: Number(activeAmount),
+        timestamp: "Just now",
+        category: activePreset === "crypto" ? "Account Drain attempt (Multi-Agent)" : activePreset === "travel" ? "Velocity Bypass (Multi-Agent)" : "Micro Charge Test (Multi-Agent)",
+        location: activeLocation,
+        riskScore: 20, // initial baseline risk score
+        severity: "SAFE",
+        anomalies: [],
+        aiSummary: "Multi-agent automated compliance investigation in progress...",
+        recommendation: "DIAGNOSTIC SCAN ACTIVE",
+        caseId: targetCaseId,
+        status: "In Review",
+        deviceIp: activeIp,
+        deviceHeader: activeHeader,
+        analystNotes: "Case initiated via multi-agent platform simulator.",
+        timeline: [
+          { time: "Just now", event: "Intake Agent: Ingested & registered case", status: "Complete" }
+        ]
+      };
+      setAlerts(prev => [initialAlert, ...prev]);
+      setSelectedAlert(initialAlert);
+    } else {
+      // Find case id of existing target alert or mock one
+      const existing = alerts.find(a => a.id === targetAlertId);
+      targetCaseId = existing ? existing.caseId : generateSimulatorCaseId();
+    }
+
+    setSimulatorLogs(prev => [...prev, "[INTAKE AGENT] Dynamic check: structural validations parsed successfully.", "[INTAKE AGENT] Case successfully opened inside database. Assigned Tracking Case Id: " + targetCaseId]);
+    
+    // Step 2: Investigation Agent (Gemini live sweep!)
+    setSimulatorStep("INVESTIGATION");
+    setPipelineProgress(25);
+    setSimulatorLogs(prev => [...prev, "[INVESTIGATION AGENT] Summoning Gemini 3.5-flash endpoint for deep forensic reasoning..."]);
+    
+    let geminiVerdict = "SUSPICIOUS";
+    let geminiRisk = 75;
+    let geminiReasoning = "Transaction velocity represents anomalous pattern matching common card-spoofing vectors.";
+    let geminiAnomalies: string[] = ["Velocity Impossible Check", "Device Unverified Header"];
+    let geminiRecommendation = "RE-AUTHENTICATE CUSTOMER VIA MFA CHALLENGE";
+    let geminiSummary = "Multi-agent deep scan flagged proxy geolocational mismatches.";
+    
+    try {
+      const mockTx = {
+        id: targetAlertId,
+        customer: activeName,
+        merchant: activeMerchant,
+        amount: Number(activeAmount),
+        timestamp: "Just now",
+        category: "Multi-Agent Security Scan",
+        location: activeLocation,
+        riskScore: 85,
+        severity: "SUSPICIOUS" as const,
+        anomalies: ["Unresolved Router Signature"],
+        aiSummary: "Performing live evaluation.",
+        recommendation: "MFA challenge recommended.",
+        caseId: targetCaseId,
+        status: "In Review" as const,
+        deviceIp: activeIp,
+        deviceHeader: activeHeader
+      };
+      
+      const response = await fetch("/api/gemini/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ transaction: mockTx })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        geminiVerdict = data.verdict || "CRITICAL";
+        geminiRisk = data.riskScore || 88;
+        geminiReasoning = data.reasoning || "Anomalous multi-agent transaction signature detected.";
+        geminiAnomalies = data.anomalies || ["Risk Factor Mismatch"];
+        geminiRecommendation = data.recommendation || "IMMEDIATE CAPITAL FREEZE";
+        geminiSummary = data.summary || "Case escalated via 5-agent compliance loop.";
+      }
+    } catch (_) {
+      setSimulatorLogs(prev => [...prev, "[INVESTIGATION AGENT] WARNING: Dedicated server link throttled. Switched to secure fail-safe heuristic node."]);
+    }
+    
+    setSimulatorLogs(prev => [...prev, `[INVESTIGATION AGENT] Gemini analysis complete. Calculated Risk Coefficient: ${geminiRisk}%. Verdict: ${geminiVerdict}.`, `[INVESTIGATION AGENT] Logged forensic reasoning: "${geminiReasoning.substring(0, 80)}..."`]);
+
+    // Live update case in DB and Selected status
+    setAlerts(prev => prev.map(a => {
+      if (a.id === targetAlertId) {
+        return {
+          ...a,
+          riskScore: geminiRisk,
+          severity: geminiVerdict as any,
+          anomalies: geminiAnomalies,
+          aiSummary: geminiReasoning,
+          recommendation: geminiRecommendation,
+          timeline: [
+            ...a.timeline!,
+            { time: "Just now", event: "Investigation Agent: Gemini forensic analysis generated findings", status: "Complete" }
+          ]
+        };
+      }
+      return a;
+    }));
+    setSelectedAlert(prev => {
+      if (prev && prev.id === targetAlertId) {
+        return {
+          ...prev,
+          riskScore: geminiRisk,
+          severity: geminiVerdict as any,
+          anomalies: geminiAnomalies,
+          aiSummary: geminiReasoning,
+          recommendation: geminiRecommendation,
+          timeline: [
+            ...prev.timeline!,
+            { time: "Just now", event: "Investigation Agent: Gemini forensic analysis generated findings", status: "Complete" }
+          ]
+        };
+      }
+      return prev;
+    });
+
+    // Step 3: Graph Analysis Agent
+    await new Promise(resolve => setTimeout(resolve, 1200));
+    setSimulatorStep("GRAPH");
+    setPipelineProgress(45);
+    setSimulatorLogs(prev => [...prev, "[GRAPH AGENT] Querying active identity graphs for linked accounts and phone clusters...", "[GRAPH AGENT] Neo4j projection: scanning proximity clusters..."]);
+    await new Promise(resolve => setTimeout(resolve, 1300));
+    
+    // Mapped correlation risk based on preset
+    let graphOutcome = "Discovered linkage coordinates: 2 active accounts shared same hardware ID.";
+    if (activePreset === "crypto") {
+      graphOutcome = "Discovered active relationship network: customer IP matches known Darknet mule router coordinates. Mapped 3 proxy hops.";
+    } else if (activePreset === "travel") {
+      graphOutcome = "Discovered entity correlation: credit card used in 2 geographic regions simultaneously within 10 minutes.";
+    } else if (activePreset === "micro") {
+      graphOutcome = "Discovered high-frequency shell network: 14 newly generated micro-accounts registered under same banking terminal.";
+    }
+    setSimulatorLogs(prev => [...prev, `[GRAPH AGENT] Network linkage evaluated. ${graphOutcome}`]);
+
+    // Live update case in DB and Selected status
+    setAlerts(prev => prev.map(a => {
+      if (a.id === targetAlertId) {
+        return {
+          ...a,
+          timeline: [
+            ...a.timeline!,
+            { time: "Just now", event: `Graph Analysis Agent: Scanned entity correlation vectors - ${graphOutcome}`, status: "Complete" }
+          ]
+        };
+      }
+      return a;
+    }));
+    setSelectedAlert(prev => {
+      if (prev && prev.id === targetAlertId) {
+        return {
+          ...prev,
+          timeline: [
+            ...prev.timeline!,
+            { time: "Just now", event: `Graph Analysis Agent: Scanned entity correlation vectors - ${graphOutcome}`, status: "Complete" }
+          ]
+        };
+      }
+      return prev;
+    });
+    
+    // Step 4: Risk Assessment Agent
+    setSimulatorStep("RISK");
+    setPipelineProgress(65);
+    setSimulatorLogs(prev => [...prev, "[RISK AGENT] Applying enterprise compliance risk matrix metrics...", `[RISK AGENT] Merging Gemini Verdict [${geminiVerdict}] with Graph Association Index...`]);
+    await new Promise(resolve => setTimeout(resolve, 1200));
+    const computedFinalRisk = Math.min(100, Math.max(0, Math.round(geminiRisk + (activePreset === "crypto" ? 2 : 0))));
+    const finalSeverity = computedFinalRisk > 80 ? "CRITICAL" : computedFinalRisk > 40 ? "SUSPICIOUS" : "SAFE";
+    
+    setSimulatorLogs(prev => [...prev, `[RISK AGENT] Computation concluded successfully. Final Computed Threat Risk Score: ${computedFinalRisk}% [${finalSeverity}]`]);
+
+    // Live update case in DB and Selected status
+    setAlerts(prev => prev.map(a => {
+      if (a.id === targetAlertId) {
+        return {
+          ...a,
+          riskScore: computedFinalRisk,
+          severity: finalSeverity as any,
+          timeline: [
+            ...a.timeline!,
+            { time: "Just now", event: `Risk Assessment Agent: Evaluated risk quotient & verdict`, status: finalSeverity === "CRITICAL" ? "Critical" : "Complete" }
+          ]
+        };
+      }
+      return a;
+    }));
+    setSelectedAlert(prev => {
+      if (prev && prev.id === targetAlertId) {
+        return {
+          ...prev,
+          riskScore: computedFinalRisk,
+          severity: finalSeverity as any,
+          timeline: [
+            ...prev.timeline!,
+            { time: "Just now", event: `Risk Assessment Agent: Evaluated risk quotient & verdict`, status: finalSeverity === "CRITICAL" ? "Critical" : "Complete" }
+          ]
+        };
+      }
+      return prev;
+    });
+    
+    // Step 5: Report Agent
+    setSimulatorStep("REPORT");
+    setPipelineProgress(80);
+    setSimulatorLogs(prev => [...prev, "[REPORT AGENT] Assembling formal FinCEN-104 Suspicious Activity Report (SAR)...", "[REPORT AGENT] Writing legal findings block to central database cache..."]);
+    await new Promise(resolve => setTimeout(resolve, 1200));
+    const sarHash = generateSimulatorSarHash();
+    setSimulatorLogs(prev => [...prev, `[REPORT AGENT] SAR compiling finished successfully. Registered compliance document block with cryptographic integrity hash matching: [${sarHash}]`]);
+
+    // Live update case in DB and Selected status
+    setAlerts(prev => prev.map(a => {
+      if (a.id === targetAlertId) {
+        return {
+          ...a,
+          timeline: [
+            ...a.timeline!,
+            { time: "Just now", event: `Report Agent: Suspicious Activity Report (SAR) registered securely [Hash: ${sarHash}]`, status: "Complete" }
+          ]
+        };
+      }
+      return a;
+    }));
+    setSelectedAlert(prev => {
+      if (prev && prev.id === targetAlertId) {
+        return {
+          ...prev,
+          timeline: [
+            ...prev.timeline!,
+            { time: "Just now", event: `Report Agent: Suspicious Activity Report (SAR) registered securely [Hash: ${sarHash}]`, status: "Complete" }
+          ]
+        };
+      }
+      return prev;
+    });
+    
+    // Step 6: UiPath Maestro Approval Integration
+    setSimulatorStep("UIPATH");
+    setPipelineProgress(90);
+    setSimulatorLogs(prev => [...prev, `[UIPATH MAESTRO] Compiling Robotic queue integration payload...`, `[UIPATH MAESTRO] Dispatched secure task transaction payload to UiPath Orchestrator queue: 'mitigation_verification' ...`, `[UIPATH MAESTRO] Webhook handshake dispatched. Awaiting digital robotic confirmation token...`]);
+    await new Promise(resolve => setTimeout(resolve, 1400));
+    const token = generateSimulatorToken();
+    setSimulatorLogs(prev => [...prev, `[UIPATH MAESTRO] Robotic response token received successfully: [${token}]. Robot confirms automatic card lock & capital freeze instructions.`]);
+
+    // Live update case in DB and Selected status
+    setAlerts(prev => prev.map(a => {
+      if (a.id === targetAlertId) {
+        return {
+          ...a,
+          status: "Blocked & Frozen",
+          analystNotes: `Case resolved automatically via 5-Agent cognitive sweep. FinCEN SAR filed. UiPath Robot locked user account card (token: ${token}).`,
+          timeline: [
+            ...a.timeline!,
+            { time: "Just now", event: `UiPath Maestro dispatch handshake executed successfully`, status: "Complete" }
+          ]
+        };
+      }
+      return a;
+    }));
+    setSelectedAlert(prev => {
+      if (prev && prev.id === targetAlertId) {
+        return {
+          ...prev,
+          status: "Blocked & Frozen",
+          analystNotes: `Case resolved automatically via 5-Agent cognitive sweep. FinCEN SAR filed. UiPath Robot locked user account card (token: ${token}).`,
+          timeline: [
+            ...prev.timeline!,
+            { time: "Just now", event: `UiPath Maestro dispatch handshake executed successfully`, status: "Complete" }
+          ]
+        };
+      }
+      return prev;
+    });
+    
+    // Step 7: Completed Resolution
+    setSimulatorStep("RESOLVED");
+    setPipelineProgress(100);
+    playSound("success");
+    addLog("SECURITY", `Multi-Agent Pipeline: Automated resolution compiled successfully for case ${targetAlertId}.`);
+    setSimulatorLogs(prev => [...prev, `[RESOLVED] COGNITIVE FLOW ENDED. Success! The generated case has been injected into your active dashboard table. Card frozen, threat vectors neutralized. Ready for next forensic command.`]);
+  };
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsMounted(true);
@@ -152,11 +572,38 @@ export default function Page() {
   const [bulkList, setBulkList] = useState<string[]>([]);
 
   // AI Copilot State
-  const [chatMessages, setChatMessages] = useState<{ role: "user" | "model"; content: string; time: string }[]>([
+  const [chatMessages, setChatMessages] = useState<{ role: "user" | "model"; content: string; time: string; suggestions?: string[] }[]>([
     {
       role: "model",
-      content: "Welcome, Operator. I am Aegis-9, your secure FraudShield AI Copilot. I have mapped three anomalous transaction vectors on the core retail channel today. Select any card to run an automated LLM forensic scan.",
-      time: "18:04:00"
+      content: `Welcome Operator. I am Aegis-9, your secure FraudShield AI Copilot. I have analyzed today's live transaction database.
+
+Currently, I detect **1 Critical-severity threat vector**, **2 Suspicious account alerts**, and **1 Approved/Safe baseline** requiring review.
+
+### **Current Security Assessment**
+• **System Integrity Status**: Elevated Threat Risk Level
+• **Analytical Confidence rating**: 95%
+• **Core Threat Exposure**: Unexpected password resets followed by high-velocity liquid capital transfer patterns.
+
+### **Recommended Risk Mitigation Actions**
+• **Freeze Account**: Immediately lock active credit/debit card terminals for critically-rated transactions (e.g., Amara Okoronkwo).
+• **Verify Customer Identity**: Deploy mandatory multi-factor SMS or physical email passkey challenges on suspicious pattern anomalies.
+• **Terminate Active Sessions**: Revoke active user login tokens for automated Python scripting CLI endpoints.
+• **Escalate to Investigator**: Compile forensically validated logs with raw network traces to fraud response specialists.
+
+Proactively guiding your next workflow operation. Please select any analytical action below or supply custom query directives.`,
+      time: "18:04:00",
+      suggestions: [
+        "🔍 Investigate suspicious entities",
+        "📊 Show risk analysis",
+        "🕸 Visualize fraud network",
+        "📄 Generate case report",
+        "⚠ Show critical alerts",
+        "🧾 Review evidence",
+        "📈 Predict future risk",
+        "🏦 Analyze account activity",
+        "🔗 Find hidden relationships",
+        "✅ Recommend next actions"
+      ]
     }
   ]);
   const [chatInput, setChatInput] = useState("");
@@ -176,8 +623,38 @@ export default function Page() {
       riskScore: 96,
       severity: "CRITICAL",
       anomalies: ["Device Fingerprint Bypass", "High-Velocity Capital Outflow", "Tor Node Routed"],
-      aiSummary: "Immediate wallet liquidation sequence triggered 14 seconds after self-service biometric reset from unrecognized Android device.",
-      recommendation: "IMMEDIATE CAPITAL FREEZE & DEVICE TERMINATION",
+      aiSummary: `EXECUTIVE SUMMARY
+A critical-level alert was compiled for Amara Okoronkwo after detecting a sudden, high-velocity withdrawal sequence of $14,900.00 at NEXUS CRYPTO EXCHANGE via a known virtual proxy routing node. The sequence initiated just seconds after a password and biometric challenge bypass attempt.
+
+CASE DETAILS
+- Subject Account: Amara Okoronkwo
+- Transaction Entity: NEXUS CRYPTO EXCHANGE
+- Monitored Outflow: $14,900.00
+- Region: Reykjavík, IS (Mullvad Relay)
+- Network Terminal: 185.213.154.12
+- Client Interface: Mozilla/5.0 (X11; Linux x86)
+
+KEY RISK INDICATORS
+- High-velocity asset liquidation pattern detected.
+- Connection established via Mullvad VPN / Tor network node to mask physical location.
+- Bypassed security checkpoints and failed credentials logs identified.
+
+EVIDENCE FOUND
+- Access log registers a password reset followed immediately by liquid capital transfer request.
+- The transaction originates from a network address associated with automated darknet mule routers.
+
+RISK ASSESSMENT
+- Confidence Score: 96%
+- Calculated Risk Level: Critical Fraud Threat
+
+RECOMMENDED ACTIONS
+- Freeze Account
+- Terminate Active Sessions
+- Escalate to Investigator
+
+FINAL VERDICT
+- CRITICAL FRAUD VIOLATION`,
+      recommendation: "Freeze Account",
       caseId: "CASE-4902",
       status: "In Review",
       deviceIp: "185.213.154.12",
@@ -200,8 +677,36 @@ export default function Page() {
       riskScore: 68,
       severity: "SUSPICIOUS",
       anomalies: ["Velocity Impossible Travel", "Recurrent Subscription Probing"],
-      aiSummary: "Small physical swipe in Paris registered exactly 4 minutes after an authorized cash ATM withdrawal in San Francisco.",
-      recommendation: "MANDATORY SMS OTP CHALLENGE & HOLD",
+      aiSummary: `EXECUTIVE SUMMARY
+A standard card-testing alert was triggered for Guillaume Mercier following a localized physical card verification request of $49.99 in Paris, registered less than 4 minutes after a valid cash ATM withdrawal took place in San Francisco.
+
+CASE DETAILS
+- Subject Account: Guillaume Mercier
+- Transaction Entity: PARIS TELECOM PORTAL
+- Monitored Outflow: $49.99
+- Region: Paris, France
+- Network Terminal: 93.184.216.34
+- Client Interface: Safari/17.2 iOS (iPhone 15 Pro)
+
+KEY RISK INDICATORS
+- Impossible travel velocity: Physical swipe in Paris and ATM withdrawal in San Francisco occurred within 4 minutes.
+- Transaction amount matches typical low-value merchant testing signals.
+
+EVIDENCE FOUND
+- Point of sale terminal verification logged in Paris (04) mismatched the user's active mobile device geolocation data.
+
+RISK ASSESSMENT
+- Confidence Score: 72%
+- Calculated Risk Level: Suspicious Activity
+
+RECOMMENDED ACTIONS
+- Block Transaction
+- Verify Customer Identity
+- Escalate to Investigator
+
+FINAL VERDICT
+- SUSPICIOUS`,
+      recommendation: "Verify Customer Identity",
       caseId: "CASE-4901",
       status: "In Review",
       deviceIp: "93.184.216.34",
@@ -223,8 +728,34 @@ export default function Page() {
       riskScore: 4,
       severity: "SAFE",
       anomalies: [],
-      aiSummary: "Standard EMV Chip physical terminal verification mapped matching core consumer historical patterns.",
-      recommendation: "AUTO-APPROVED BY STANDARD POLICY",
+      aiSummary: `EXECUTIVE SUMMARY
+A regular retail transaction at Whole Foods SOMA for $114.50 was analyzed and approved automatically.
+
+CASE DETAILS
+- Subject Account: Eleanor Sterling
+- Transaction Entity: WHOLE FOODS SOMA
+- Monitored Outflow: $114.50
+- Region: San Francisco, USA
+- Network Terminal: 12.43.195.88
+- Client Interface: NFC ApplePay Reader #7712
+
+KEY RISK INDICATORS
+- None identified. Device parameters and location align with typical customer baseline.
+
+EVIDENCE FOUND
+- EMV Cryptogram verified successfully.
+- Localized biometric keychain validation validated.
+
+RISK ASSESSMENT
+- Confidence Score: 99%
+- Calculated Risk Level: Safe / Minimal Risk
+
+RECOMMENDED ACTIONS
+- No Action Required
+
+FINAL VERDICT
+- APPROVED`,
+      recommendation: "No Action Required",
       caseId: "CASE-4900",
       status: "Approved",
       deviceIp: "12.43.195.88",
@@ -245,8 +776,36 @@ export default function Page() {
       riskScore: 78,
       severity: "SUSPICIOUS",
       anomalies: ["Automated Script Signatures", "Pre-Liquidation Probe"],
-      aiSummary: "Automated low-value transfer mapping commonly used to verify valid token credentials before large system drain.",
-      recommendation: "MANDATORY CALL CHALLENGE & ACCOUNT SUSPENSION",
+      aiSummary: `EXECUTIVE SUMMARY
+A card testing pattern signature was discovered on the account of Douglas Vance, involving a $1.45 micro-charge transfer via an automated scripting terminal based in Moscow.
+
+CASE DETAILS
+- Subject Account: Douglas Vance
+- Transaction Entity: P2P MICRO-TRANSFER CO
+- Monitored Outflow: $1.45
+- Region: Moscow, RU (Proxy Node)
+- Network Terminal: 185.70.185.15
+- Client Interface: Python-requests/2.31.0 Scripting CLI
+
+KEY RISK INDICATORS
+- Non-standard browser header indicating automated Python scripting.
+- Use of localized proxy servers to route connection requests.
+
+EVIDENCE FOUND
+- Server endpoint telemetry registered high-frequency, programmatic attempts to check valid tokens.
+
+RISK ASSESSMENT
+- Confidence Score: 78%
+- Calculated Risk Level: Suspicious / High Probability Card Verification
+
+RECOMMENDED ACTIONS
+- Verify Customer Identity
+- Block Transaction
+- Escalate to Investigator
+
+FINAL VERDICT
+- SUSPICIOUS`,
+      recommendation: "Verify Customer Identity",
       caseId: "CASE-4899",
       status: "In Review",
       deviceIp: "185.70.185.15",
@@ -436,84 +995,126 @@ export default function Page() {
     setLogs(prev => [freshLog, ...prev.slice(0, 19)]);
   };
 
+  const handleAddEvidenceFiles = (fileList: FileList | null) => {
+    if (!fileList || !selectedAlert) return;
+    const newFiles = Array.from(fileList).map(f => f.name);
+    if (newFiles.length === 0) return;
+
+    setAlerts(prev =>
+      prev.map(a => {
+        if (a.id === selectedAlert.id) {
+          const existing = a.evidenceFiles || [];
+          return {
+            ...a,
+            evidenceFiles: [...existing, ...newFiles]
+          };
+        }
+        return a;
+      })
+    );
+
+    setSelectedAlert(prev => {
+      if (!prev) return prev;
+      const existing = prev.evidenceFiles || [];
+      return {
+        ...prev,
+        evidenceFiles: [...existing, ...newFiles]
+      };
+    });
+
+    newFiles.forEach(fileName => {
+      addLog("SECURITY", `Associated file [${fileName}] securely uploaded & mapped to case ${selectedAlert.id}.`);
+    });
+    playSound("success");
+  };
+
   // Simulation Injection
   const injectAlert = (type: "travel" | "crypto" | "biometric") => {
     playSound("warning");
     const { randId, randCase } = getNextAlertIds();
     let newItem: Alert;
 
+    let preset: "crypto" | "travel" | "micro" = "crypto";
+    let name = "";
+    let merchant = "";
+    let amount = 0;
+    let location = "";
+    let ip = "";
+    let header = "";
+    let category = "";
+    let analystNotes = "";
+
     if (type === "travel") {
-      newItem = {
-        id: randId,
-        customer: "Sarah Jenkins",
-        merchant: "TOKYO METRO RAILWAY",
-        amount: 88.50,
-        timestamp: "Just now",
-        category: "Impossible Travel Velocity",
-        location: "Tokyo, JP",
-        riskScore: 82,
-        severity: "SUSPICIOUS",
-        anomalies: ["Instant Geographic Shift", "Unregistered Card Terminal"],
-        aiSummary: "Physical payment sequence completed in Tokyo station less than 8 minutes after an online digital order occurred in Boston.",
-        recommendation: "ENFORCE TWO-FACTOR CHALLENGE & BLOCK TRAVEL CHIP",
-        caseId: randCase,
-        status: "In Review",
-        deviceIp: "203.0.113.67",
-        deviceHeader: "NFC EMV Terminal Class-2 v9",
-        analystNotes: "Suspicious geolocational velocity leap. Cardholder has no registered travel history.",
-        timeline: [{ time: "Just now", event: "Impossible velocity calculation triggered", status: "Critical" }]
-      };
+      preset = "travel";
+      name = "Sarah Jenkins";
+      merchant = "TOKYO METRO RAILWAY";
+      amount = 88.50;
+      location = "Tokyo, JP";
+      ip = "203.0.113.67";
+      header = "NFC EMV Terminal Class-2 v9";
+      category = "Impossible Travel Velocity";
+      analystNotes = "Suspicious geolocational velocity leap. Cardholder has no registered travel history.";
       setNotifyQueue("🚨 IMPOSSIBLE TRAVEL VELOCITY IDENTIFIED");
     } else if (type === "crypto") {
-      newItem = {
-        id: randId,
-        customer: "Marcus Vance",
-        merchant: "BINANCE ASSET TRADER",
-        amount: 19500.00,
-        timestamp: "Just now",
-        category: "High-value Escrow Liquidation",
-        location: "Unknown Location (Tor Node)",
-        riskScore: 98,
-        severity: "CRITICAL",
-        anomalies: ["Tor Onion Route Proxy", "Biometric Authentication Defeated", "Rapid Account Drain"],
-        aiSummary: "Outflow of capital routing to external decentralized pool. Matches known automated drainer script behaviors.",
-        recommendation: "LAUNCH IMMEDIATE PROTOCOL-8 ACCOUNT SUSPENSION",
-        caseId: randCase,
-        status: "In Review",
-        deviceIp: "109.201.154.2",
-        deviceHeader: "Tor Browser v13 - Linux x86_64",
-        analystNotes: "Urgent account drain suspect. Cryptographic key bypass protocol matches known hacker kit.",
-        timeline: [{ time: "Just now", event: "Decentralized P2P router alert", status: "Critical" }]
-      };
+      preset = "crypto";
+      name = "Marcus Vance";
+      merchant = "BINANCE ASSET TRADER";
+      amount = 19500.00;
+      location = "Unknown Location (Tor Node)";
+      ip = "109.201.154.2";
+      header = "Tor Browser v13 - Linux x86_64";
+      category = "High-value Escrow Liquidation";
+      analystNotes = "Urgent account drain suspect. Cryptographic key bypass protocol matches known hacker kit.";
       setNotifyQueue("🚨 EMERGENCY: FRAUDULENT CRYPTO LIQUIDATION");
     } else {
-      newItem = {
-        id: randId,
-        customer: "Elena Rostova",
-        merchant: "STRIPE SAAS API GATEWAY",
-        amount: 1.00,
-        timestamp: "Just now",
-        category: "Card Testing Attack",
-        location: "Berlin, DE (NordVPN)",
-        riskScore: 54,
-        severity: "SUSPICIOUS",
-        anomalies: ["High-Velocity Script Attempt", "VPN Tunnel Match"],
-        aiSummary: "Standard 1.00 unit charge attempt, commonly structured for automated credit testing pools.",
-        recommendation: "FLAG MERCHANT ENDPOINT & SMS CHALLENGE",
-        caseId: randCase,
-        status: "In Review",
-        deviceIp: "193.56.28.4",
-        deviceHeader: "Python/aiohttp client framework",
-        analystNotes: "Suspected system harvesting test.",
-        timeline: [{ time: "Just now", event: "Micro charge sequence captured", status: "Incomplete" }]
-      };
+      preset = "micro";
+      name = "Elena Rostova";
+      merchant = "STRIPE SAAS API GATEWAY";
+      amount = 1.00;
+      location = "Berlin, DE (NordVPN)";
+      ip = "193.56.28.4";
+      header = "Python/aiohttp client framework";
+      category = "Card Testing Attack";
+      analystNotes = "Suspected system harvesting test.";
       setNotifyQueue("⚠️ SUSPECTED CARD TESTING PATTERN");
     }
 
+    newItem = {
+      id: randId,
+      customer: name,
+      merchant,
+      amount,
+      timestamp: "Just now",
+      category,
+      location,
+      riskScore: 20,
+      severity: "SAFE",
+      anomalies: [],
+      aiSummary: "Multi-agent dynamic sandbox verification in progress...",
+      recommendation: "DIAGNOSTIC SCAN COGNITIVE FLOW INITIALIZED",
+      caseId: randCase,
+      status: "In Review",
+      deviceIp: ip,
+      deviceHeader: header,
+      analystNotes,
+      timeline: [
+        { time: "Just now", event: "Intake Agent: Ingested & registered case", status: "Complete" }
+      ]
+    };
+
     setAlerts(prev => [newItem, ...prev]);
     setSelectedAlert(newItem);
-    addLog("ALERTS", `Alert Injection: ${newItem.category} mapped on ${newItem.id}.`);
-    
+    addLog("ALERTS", `Alert Injected (In Review): ${newItem.category} mapped on ${newItem.id}.`);
+
+    // Reset simulator visual metrics & Open modal
+    setSimulatorStep("IDLE");
+    setSimulatorLogs([]);
+    setPipelineProgress(0);
+    setIsAgentSimulatorOpen(true);
+
+    // Run the cognitive orchestrator live with exact overrides and pass this item's ID
+    runAgentMaverickPipeline(preset, name, merchant, amount, location, ip, header, randId);
+
     setTimeout(() => {
       setNotifyQueue(null);
     }, 4000);
@@ -535,6 +1136,82 @@ export default function Page() {
       })
     );
     addLog("SECURITY", `Mitigation step executed: Case ${id} changed to [${newStatus}] status.`);
+  };
+
+  const deleteAlert = (id: string) => {
+    if (alerts.length <= 1) {
+      playSound("warning");
+      setNotifyQueue("⚠️ Cannot delete: At least one security case must remain in the ledger.");
+      return;
+    }
+    playSound("warning");
+    setAlerts(prev => {
+      const updated = prev.filter(item => item.id !== id);
+      if (selectedAlert && selectedAlert.id === id) {
+        setSelectedAlert(updated[0]);
+      }
+      return updated;
+    });
+    addLog("SECURITY", `Case ${id} has been permanently deleted and purged from live session cache.`);
+    setNotifyQueue(`🗑️ Case ${id} has been permanently deleted.`);
+  };
+
+  const addNewCase = () => {
+    if (!newCaseCustomer.trim() || !newCaseMerchant.trim() || !newCaseAmount) {
+      setNotifyQueue("⚠️ Please populate Customer Name, Merchant, and Amount fields.");
+      return;
+    }
+
+    playSound("success");
+    const randId = generateSimulatorTxId();
+    const randCase = generateSimulatorCaseId();
+    
+    const parsedAmount = parseFloat(newCaseAmount) || 0.0;
+    const score = Number(newCaseRiskScore) || 50;
+    const sevValue = score >= 75 ? "CRITICAL" : score >= 40 ? "SUSPICIOUS" : "SAFE";
+
+    const customNewCase: Alert = {
+      id: randId,
+      customer: newCaseCustomer,
+      merchant: newCaseMerchant,
+      amount: parsedAmount,
+      location: newCaseLocation || "United States",
+      timestamp: "Just now",
+      status: "In Review",
+      riskScore: score,
+      severity: sevValue,
+      category: newCaseCategory,
+      anomalies: [
+        score >= 70 ? "Unusual Outflow Spike" : "Manual Integration Audit Mapped",
+      ],
+      aiSummary: "Manual audit creation triggered. Select Multi-Agent evaluation pipeline to deep trace telemetry or authorize resolving actions.",
+      recommendation: "Manual evaluation pending analyst directives.",
+      caseId: randCase,
+      deviceIp: newCaseDeviceIp || "192.168.1.100",
+      deviceHeader: newCaseDeviceHeader || "Mozilla/5.0",
+      analystNotes: "",
+      timeline: [
+        { time: "Just now", event: "Standard manual case integration recorded", status: "Incomplete" }
+      ],
+      evidenceFiles: []
+    };
+
+    setAlerts(prev => [customNewCase, ...prev]);
+    setSelectedAlert(customNewCase);
+    setIsCreateCaseOpen(false);
+
+    // Reset fields
+    setNewCaseCustomer("");
+    setNewCaseMerchant("");
+    setNewCaseAmount("");
+    setNewCaseCategory("Card Testing");
+    setNewCaseLocation("United States");
+    setNewCaseRiskScore(65);
+    setNewCaseDeviceIp("192.168.1.100");
+    setNewCaseDeviceHeader("Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0");
+
+    addLog("ALERTS", `Manual Case Created: ${customNewCase.customer} mapped under ID: ${customNewCase.id}.`);
+    setNotifyQueue(`✅ Securely provisioned case registry for ${customNewCase.id}!`);
   };
 
   // Automated Forensic Analysis via Gemini API proxy
@@ -571,25 +1248,37 @@ export default function Page() {
     }
   };
 
-  // Copilot dialogue flow
-  const sendChatMessage = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!chatInput.trim() || chatLoading) return;
+
+
+  const submitCopilotMessage = async (userText: string) => {
+    if (chatLoading || !userText.trim()) return;
 
     playSound("click");
-    const userText = chatInput;
-    setChatInput("");
     
+    // We construct the new message first and add it to the state
     const userMsg = { role: "user" as const, content: userText, time: new Date().toTimeString().split(" ")[0] };
-    setChatMessages(prev => [...prev, userMsg]);
+    
+    // Use functional state updates to get the most up-to-date messages history list
+    setChatMessages(prev => {
+      const updatedMessages = [...prev, userMsg];
+      
+      // We start fetching from inside the state setter or right outside
+      // To run properly with asynchronous fetch, we can use the current state
+      return updatedMessages;
+    });
+    
     setChatLoading(true);
 
     try {
+      // Get the current messages array for the backend API call
+      // Wait, we need the accurate message history with the userMsg appended
+      const currentFullHistory = [...chatMessages, userMsg];
+      
       const response = await fetch("/api/gemini/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          messages: [...chatMessages, userMsg].map(m => ({ role: m.role, content: m.content })),
+          messages: currentFullHistory.map(m => ({ role: m.role, content: m.content })),
           currentThreatLevel: "ELEVATED",
           activeAlertsCount: alerts.filter(a => a.status === "In Review").length
         })
@@ -598,21 +1287,100 @@ export default function Page() {
       
       setChatMessages(prev => [
         ...prev,
-        { role: "model", content: data.reply, time: new Date().toTimeString().split(" ")[0] }
+        { 
+          role: "model", 
+          content: data.reply, 
+          time: new Date().toTimeString().split(" ")[0],
+          suggestions: data.suggestions && data.suggestions.length > 0 ? data.suggestions : [
+            "🔍 Investigate suspicious entities",
+            "📊 Show risk analysis",
+            "🕸 Visualize fraud network",
+            "📄 Generate case report",
+            "✅ Recommend next actions"
+          ]
+        }
       ]);
-      addLog("INTELLIGENCE", "Aegis-9 strategic solution compiled via server-side Gemini client.");
+      addLog("INTELLIGENCE", `Aegis-9 strategic compilation active for query: "${userText.substring(0, 30)}..."`);
     } catch (_) {
       setChatMessages(prev => [
         ...prev,
         {
           role: "model",
-          content: "[FAILSAFE ROUTE ACTIVATED] Local neural node compiled safely. Security recommend: immediately halt transaction TX-5082 and launch client biometric challenge protocols.",
-          time: new Date().toTimeString().split(" ")[0]
+          content: `I have received your inquiry: "${userText}". Under local backup mode, FraudShield AI advises executing the following next steps:
+• Freeze affected user credentials and card routes.
+• Send client challenge links across active devices.
+• Escalate anomalous patterns to legal counsel.`,
+          time: new Date().toTimeString().split(" ")[0],
+          suggestions: [
+            "🔍 Investigate suspicious entities",
+            "📊 Show risk analysis",
+            "🕸 Visualize fraud network",
+            "📄 Generate case report",
+            "✅ Recommend next actions"
+          ]
         }
       ]);
     } finally {
       setChatLoading(false);
     }
+  };
+
+  // Copilot dialogue flow
+  const sendChatMessage = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!chatInput.trim() || chatLoading) return;
+
+    const text = chatInput;
+    setChatInput("");
+    await submitCopilotMessage(text);
+  };
+
+  // Interactive Login sequence simulating enterprise-level zero-trust bypass clearance check
+  const handleLogin = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (loginState !== "IDLE") return;
+    
+    playSound("click");
+    setLoginState("AUTHENTICATING");
+    setLoginLogs([
+      "🔋 Initiating zero-trust operator handshake override...",
+      `🔑 Dispatching verification logs to centralized Aegis Auth Node [ID: ${loginOperatorId}]`
+    ]);
+
+    await new Promise(resolve => setTimeout(resolve, 600));
+    setLoginState("DECRYPTING");
+    setLoginLogs(prev => [
+      ...prev,
+      "⚡ Establishing secure TLS 1.3 cryptographic session link...",
+      "🔐 Symmetrical payload challenge completed. AES-256 session compiled successfully."
+    ]);
+
+    await new Promise(resolve => setTimeout(resolve, 600));
+    setLoginState("ESTABLISHING");
+    setLoginLogs(prev => [
+      ...prev,
+      "🛰 Root administrative privileges verified for sector SEC-OPS.",
+      "🕸 Seamlessly proxying active FraudShield command rails...",
+      "🧠 Syncing secure server-side Aegis-9 live brain nodes..."
+    ]);
+
+    await new Promise(resolve => setTimeout(resolve, 600));
+    setLoginState("SUCCESS");
+    setLoginLogs(prev => [
+      ...prev,
+      "🚀 Authentication finalized. Command bridge initialized."
+    ]);
+
+    await new Promise(resolve => setTimeout(resolve, 300));
+    playSound("success");
+    setIsLoggedIn(true);
+  };
+
+  const handleLogout = () => {
+    playSound("warning");
+    setIsLoggedIn(false);
+    setLoginState("IDLE");
+    setLoginLogs([]);
   };
 
   // Reset Mock Data
@@ -630,8 +1398,38 @@ export default function Page() {
         riskScore: 96,
         severity: "CRITICAL",
         anomalies: ["Device Fingerprint Bypass", "High-Velocity Capital Outflow", "Tor Node Routed"],
-        aiSummary: "Immediate wallet liquidation sequence triggered 14 seconds after self-service biometric reset from unrecognized Android device.",
-        recommendation: "IMMEDIATE CAPITAL FREEZE & DEVICE TERMINATION",
+        aiSummary: `EXECUTIVE SUMMARY
+A critical-level alert was compiled for Amara Okoronkwo after detecting a sudden, high-velocity withdrawal sequence of $14,900.00 at NEXUS CRYPTO EXCHANGE via a known virtual proxy routing node. The sequence initiated just seconds after a password and biometric challenge bypass attempt.
+
+CASE DETAILS
+- Subject Account: Amara Okoronkwo
+- Transaction Entity: NEXUS CRYPTO EXCHANGE
+- Monitored Outflow: $14,900.00
+- Region: Reykjavík, IS (Mullvad Relay)
+- Network Terminal: 185.213.154.12
+- Client Interface: Mozilla/5.0 (X11; Linux x86)
+
+KEY RISK INDICATORS
+- High-velocity asset liquidation pattern detected.
+- Connection established via Mullvad VPN / Tor network node to mask physical location.
+- Bypassed security checkpoints and failed credentials logs identified.
+
+EVIDENCE FOUND
+- Access log registers a password reset followed immediately by liquid capital transfer request.
+- The transaction originates from a network address associated with automated darknet mule routers.
+
+RISK ASSESSMENT
+- Confidence Score: 96%
+- Calculated Risk Level: Critical Fraud Threat
+
+RECOMMENDED ACTIONS
+- Freeze Account
+- Terminate Active Sessions
+- Escalate to Investigator
+
+FINAL VERDICT
+- CRITICAL FRAUD VIOLATION`,
+        recommendation: "Freeze Account",
         caseId: "CASE-4902",
         status: "In Review",
         deviceIp: "185.213.154.12",
@@ -653,8 +1451,36 @@ export default function Page() {
         riskScore: 68,
         severity: "SUSPICIOUS",
         anomalies: ["Velocity Impossible Travel", "Recurrent Subscription Probing"],
-        aiSummary: "Small physical swipe in Paris registered exactly 4 minutes after an authorized cash ATM withdrawal in San Francisco.",
-        recommendation: "MANDATORY SMS OTP CHALLENGE & HOLD",
+        aiSummary: `EXECUTIVE SUMMARY
+A standard card-testing alert was triggered for Guillaume Mercier following a localized physical card verification request of $49.99 in Paris, registered less than 4 minutes after a valid cash ATM withdrawal took place in San Francisco.
+
+CASE DETAILS
+- Subject Account: Guillaume Mercier
+- Transaction Entity: PARIS TELECOM PORTAL
+- Monitored Outflow: $49.99
+- Region: Paris, France
+- Network Terminal: 93.184.216.34
+- Client Interface: Safari/17.2 iOS (iPhone 15 Pro)
+
+KEY RISK INDICATORS
+- Impossible travel velocity: Physical swipe in Paris and ATM withdrawal in San Francisco occurred within 4 minutes.
+- Transaction amount matches typical low-value merchant testing signals.
+
+EVIDENCE FOUND
+- Point of sale terminal verification logged in Paris (04) mismatched the user's active mobile device geolocation data.
+
+RISK ASSESSMENT
+- Confidence Score: 72%
+- Calculated Risk Level: Suspicious Activity
+
+RECOMMENDED ACTIONS
+- Block Transaction
+- Verify Customer Identity
+- Escalate to Investigator
+
+FINAL VERDICT
+- SUSPICIOUS`,
+        recommendation: "Verify Customer Identity",
         caseId: "CASE-4901",
         status: "In Review",
         deviceIp: "93.184.216.34",
@@ -673,8 +1499,34 @@ export default function Page() {
         riskScore: 4,
         severity: "SAFE",
         anomalies: [],
-        aiSummary: "Standard EMV Chip physical terminal verification mapped matching core consumer historical patterns.",
-        recommendation: "AUTO-APPROVED BY STANDARD POLICY",
+        aiSummary: `EXECUTIVE SUMMARY
+A regular retail transaction at Whole Foods SOMA for $114.50 was analyzed and approved automatically.
+
+CASE DETAILS
+- Subject Account: Eleanor Sterling
+- Transaction Entity: WHOLE FOODS SOMA
+- Monitored Outflow: $114.50
+- Region: San Francisco, USA
+- Network Terminal: 12.43.195.88
+- Client Interface: NFC ApplePay Reader #7712
+
+KEY RISK INDICATORS
+- None identified. Device parameters and location align with typical customer baseline.
+
+EVIDENCE FOUND
+- EMV Cryptogram verified successfully.
+- Localized biometric keychain validation validated.
+
+RISK ASSESSMENT
+- Confidence Score: 99%
+- Calculated Risk Level: Safe / Minimal Risk
+
+RECOMMENDED ACTIONS
+- No Action Required
+
+FINAL VERDICT
+- APPROVED`,
+        recommendation: "No Action Required",
         caseId: "CASE-4900",
         status: "Approved",
         deviceIp: "12.43.195.88",
@@ -788,6 +1640,221 @@ export default function Page() {
             LOADING SECURE PROTOCOL...
           </p>
         </div>
+      </div>
+    );
+  }
+
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-[#050B18] font-sans text-slate-100 flex flex-col justify-between relative overflow-hidden select-none">
+        
+        {/* Subtle grid pattern background */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-35 z-0"></div>
+        
+        {/* Soft neon blue glow elements */}
+        <div className="absolute top-1/4 left-1/4 -translate-y-1/2 -translate-x-1/2 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl animate-pulse z-0"></div>
+        <div className="absolute bottom-1/4 right-1/4 translate-y-1/2 translate-x-1/2 w-[450px] h-[450px] bg-cyan-600/10 rounded-full blur-3xl animate-pulse delay-700 z-0"></div>
+        
+        {/* Login Page Top Header */}
+        <header className="relative z-10 w-full max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20 text-white relative overflow-hidden">
+              <ShieldAlert className="w-5 h-5 relative z-10" />
+              <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500 to-blue-700 opacity-20"></div>
+            </div>
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2">
+                <span className="font-extrabold tracking-tight text-white antialiased text-base">FraudShield AI</span>
+                <span className="bg-blue-500/25 border border-blue-500/40 text-blue-400 font-mono text-[9px] uppercase px-1.5 py-0.2 rounded font-black">V4.9 PRO</span>
+              </div>
+              <span className="text-[10px] text-slate-400 font-mono tracking-wider">Aegis-9 Operator Gateway</span>
+            </div>
+          </div>
+          
+          <div className="bg-slate-900/60 border border-slate-800 backdrop-blur-md px-3.5 py-1.5 rounded-full text-[10.5px] font-mono font-bold tracking-widest text-[#06B6D4] flex items-center gap-2 animate-pulse">
+            <span className="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-ping"></span>
+            SYS STATUS: ONLINE
+          </div>
+        </header>
+
+        {/* Main layout container */}
+        <main className="relative z-10 flex-grow w-full max-w-7xl mx-auto px-6 flex flex-col lg:flex-row items-center justify-center gap-12 lg:gap-16 pt-2 pb-10">
+          
+          {/* Column A: Interactive Command Center Cybersecurity Illustration & Status feed */}
+          <div className="hidden lg:flex flex-col flex-1 text-left space-y-6">
+            <div className="space-y-3">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-500/10 border border-blue-500/25 text-blue-400 rounded-full text-[10px] font-mono uppercase font-black tracking-widest">
+                <Radio className="w-3.5 h-3.5 animate-pulse" /> Cognitive Threat Neutralizer
+              </span>
+              <h1 className="text-4xl xl:text-5xl font-extrabold tracking-tight text-white leading-tight">
+                Zero-Trust Autonomous <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">
+                  Fraud Defense Bridge
+                </span>
+              </h1>
+              <p className="text-slate-400 text-sm max-w-xl leading-relaxed">
+                Unlock the unified analytics deck of Aegis-9. Experience full multi-agent automated transaction scanning, live forensic risk correlation telemetry, and cognitive mitigation handshakes directly interfacing with physical merchant servers.
+              </p>
+            </div>
+
+            {/* Immersive interactive status illustration dashboard */}
+            <div className="bg-slate-900/50 hover:bg-slate-900/80 transition-all border border-slate-800 rounded-3xl p-6 relative overflow-hidden backdrop-blur-md max-w-xl shadow-2xl">
+              <div className="flex items-center justify-between pb-4 border-b border-slate-800 mb-4">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 bg-[#06B6D4] rounded-full animate-ping"></span>
+                  <span className="font-mono text-xs text-slate-300 font-extrabold uppercase tracking-wide">Live Threat Landscape Telemetry</span>
+                </div>
+                <div className="flex items-center gap-1 font-mono text-[9px] text-[#06B6D4] font-black">
+                  <span className="px-1.5 py-0.5 rounded bg-cyan-500/10 border border-cyan-500/20 uppercase">Core Tunnel</span>
+                </div>
+              </div>
+
+              {/* Graphic nodes representation */}
+              <div className="grid grid-cols-3 gap-3 mb-4">
+                <div className="bg-slate-950/70 border border-slate-800 p-3 rounded-2xl flex flex-col">
+                  <span className="text-slate-400 font-mono text-[9px] uppercase font-bold">Risk Assessment</span>
+                  <span className="text-xl font-extrabold tracking-tight text-[#EF4444] mt-1">CRITICAL</span>
+                  <span className="text-[9px] text-slate-500 font-mono mt-1 font-bold">1 Active Threat</span>
+                </div>
+                <div className="bg-slate-950/70 border border-slate-800 p-3 rounded-2xl flex flex-col">
+                  <span className="text-slate-400 font-mono text-[9px] uppercase font-bold">Threat Index</span>
+                  <span className="text-xl font-extrabold tracking-tight text-yellow-400 mt-1 font-mono">ELEVATED</span>
+                  <span className="text-[9px] text-slate-500 font-mono mt-1 font-bold">Level 4 Node</span>
+                </div>
+                <div className="bg-slate-950/70 border border-slate-800 p-3 rounded-2xl flex flex-col">
+                  <span className="text-slate-400 font-mono text-[9px] uppercase font-bold">Active Shield</span>
+                  <span className="text-xl font-extrabold tracking-tight text-[#06B6D4] mt-1 font-mono">AEGIS-9</span>
+                  <span className="text-[9px] text-slate-500 font-mono mt-1 font-bold">All engines active</span>
+                </div>
+              </div>
+
+              {/* Micro command scan bar */}
+              <div className="bg-slate-950 border border-slate-800 p-3.5 rounded-2xl font-mono text-[11px] leading-relaxed relative overflow-hidden min-h-[96px] text-left">
+                <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-blue-500/5 to-transparent animate-pulse"></div>
+                <div className="text-slate-400 flex items-center justify-between mb-1.5 border-b border-slate-900 pb-1 font-bold">
+                  <span>FORENSIC TELEMETRY STREAM</span>
+                  <span className="text-cyan-500 animate-pulse text-[9px]">● MONITORING ACTIVE</span>
+                </div>
+                <div className="space-y-1 text-slate-500 font-mono text-[9px]">
+                  <div>[18:04:12] <span className="text-yellow-400 font-bold">WARN</span> Policy Node 14 flags Mullvad VPN node 185.xx.xx.xx.</div>
+                  <div>[18:04:15] <span className="text-cyan-400 font-bold">INFO</span> Instantiating neural correlation query scan...</div>
+                  <div>[18:04:22] <span className="text-[#EF4444] font-bold">CRIT</span> Account drain pattern mapped on Nex-Crypto transaction.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Column B: Glass Login Card */}
+          <div className="w-full max-w-md">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="relative z-10 backdrop-blur-md bg-slate-900/60 hover:bg-slate-900/75 transition-all border border-slate-850 rounded-3xl p-8 w-full shadow-2xl shadow-blue-950/40"
+            >
+              <div className="flex justify-center mb-5">
+                <span className="bg-blue-500/10 text-cyan-400 border border-cyan-500/20 text-[9px] font-mono px-3 py-1 rounded-full uppercase font-black tracking-widest shadow-inner">
+                  Secure Authentication Gateway
+                </span>
+              </div>
+
+              <div className="text-center space-y-2">
+                <h2 className="text-2xl font-extrabold tracking-tight text-white font-sans">System Authorization</h2>
+                <p className="text-xs text-slate-400 font-medium">
+                  Unlock central command and active AI forensic channels
+                </p>
+              </div>
+
+              <form onSubmit={handleLogin} className="space-y-5 mt-6 text-left">
+                {/* Operator ID Input field */}
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-mono tracking-wider font-extrabold uppercase text-slate-400">
+                    OPERATOR IDENTITY SIGNATURE
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
+                      <User className="w-4 h-4" />
+                    </span>
+                    <input
+                      type="text"
+                      required
+                      value={loginOperatorId}
+                      onChange={(e) => setLoginOperatorId(e.target.value.toUpperCase())}
+                      disabled={loginState !== "IDLE"}
+                      className="w-full bg-slate-950 border border-slate-850 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm font-semibold rounded-2xl pl-10 pr-4 py-3 text-white transition outline-none font-mono tracking-wide"
+                      placeholder="ENTER OPERATOR ID"
+                    />
+                  </div>
+                </div>
+
+                {/* Password / Passcode Input field */}
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-mono tracking-wider font-extrabold uppercase text-slate-400">
+                    CONSOLE SECURITY CLEARANCE KEY
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
+                      <Lock className="w-4 h-4" />
+                    </span>
+                    <input
+                      type="password"
+                      required
+                      value={loginPasscode}
+                      onChange={(e) => setLoginPasscode(e.target.value)}
+                      disabled={loginState !== "IDLE"}
+                      className="w-full bg-slate-950 border border-slate-850 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm font-semibold rounded-2xl pl-10 pr-4 py-3 text-white transition outline-none font-mono tracking-wide"
+                      placeholder="ENTER CLEARANCE KEY"
+                    />
+                  </div>
+                </div>
+
+                {/* Secure Sign-in Logs Output Area if state changed from IDLE */}
+                {loginState !== "IDLE" && (
+                  <div className="p-3.5 bg-slate-950 border border-slate-850 rounded-2xl font-mono text-[9px] leading-relaxed text-slate-400 space-y-1">
+                    <div className="text-cyan-400 flex items-center justify-between border-b border-slate-900 pb-1 mb-1 font-bold font-mono">
+                      <span>SECURE HANDSHAKE TELEMETRY</span>
+                      <span>STATUS: {loginState}</span>
+                    </div>
+                    {loginLogs.map((log, lIdx) => (
+                      <div key={lIdx} className="font-mono text-slate-300">
+                        {log}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Neon Blue Authorize Sign-In Button */}
+                <button
+                  type="submit"
+                  disabled={loginState !== "IDLE"}
+                  className="w-full relative py-3.5 px-4 rounded-2xl text-xs font-bold tracking-wider uppercase cursor-pointer select-none transition-all duration-300 flex items-center justify-center gap-2 text-white bg-blue-600 hover:bg-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none border border-blue-500/20 overflow-hidden shadow-lg shadow-blue-600/25 active:scale-95 disabled:opacity-50"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-cyan-500 opacity-0 hover:opacity-10 transition"></div>
+                  {loginState === "IDLE" ? (
+                    <>
+                      <span>Unlock System Command Bridge</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  ) : loginState === "SUCCESS" ? (
+                    <>
+                      <span>CONSOLE ACCESS GRANTED</span>
+                      <Check className="w-4 h-4 text-green-400 animate-bounce" />
+                    </>
+                  ) : (
+                    <>
+                      <span>Securing Connection Tunnel...</span>
+                      <Loader2 className="w-4 h-4 animate-spin text-cyan-400" />
+                    </>
+                  )}
+                </button>
+              </form>
+            </motion.div>
+          </div>
+        </main>
+
+        <footer className="relative z-10 w-full text-center py-6 border-t border-slate-900 text-[9px] font-mono text-slate-500 tracking-wider">
+          AUTHORIZED CORPORATE OPERATOR ACCESS ONLY • SECURITY COMPLIANCE STANDARDS COMPLIENT • AES-256 SECURED CRYPTO HANDSHAKE
+        </footer>
       </div>
     );
   }
@@ -915,6 +1982,15 @@ export default function Page() {
               alt="User bot icon"
               className="w-8 h-8 rounded-xl border border-white/10 bg-slate-900"
             />
+
+            <button
+              onClick={handleLogout}
+              className="px-3 py-1.5 bg-slate-900/60 hover:bg-slate-950 border border-slate-800 hover:border-red-500/40 text-slate-400 hover:text-red-400 rounded-xl transition flex items-center gap-1.5 cursor-pointer text-[10px] font-mono font-bold uppercase tracking-wider"
+              title="Terminate Secure Session (Log Out)"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">DISCONNECT</span>
+            </button>
           </div>
         </header>
 
@@ -1433,9 +2509,9 @@ export default function Page() {
                             <span className="text-[9px] font-mono text-slate-500 font-bold">GEMINI 3.5 FLASH</span>
                           </div>
                           
-                          <p className="text-[11.5px] text-slate-650 leading-relaxed font-medium">
+                          <div className="text-[11.5px] text-slate-700 leading-relaxed font-sans whitespace-pre-wrap select-text space-y-2 bg-white/60 p-3.5 rounded-xl border border-slate-200/50">
                             {selectedAlert.aiSummary}
-                          </p>
+                          </div>
 
                           <div className="flex items-center gap-2">
                             <button
@@ -1505,12 +2581,31 @@ export default function Page() {
                 {/* 3. CASE MANAGEMENT & INVESTIGATION WORKSPACE */}
                 {activeTab === "Cases" && (
                   <div className="space-y-6">
-                    <div>
-                      <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-                        <Briefcase className="w-5 h-5 text-blue-600" />
-                        Comprehensive Case Management Ledger
-                      </h1>
-                      <p className="text-xs text-slate-500">Enterprise data-first audit view. Filter, query, sort, batch resolve security incidents, and compile regulatory findings.</p>
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                      <div>
+                        <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                          <Briefcase className="w-5 h-5 text-blue-600" />
+                          Comprehensive Case Management Ledger
+                        </h1>
+                        <p className="text-xs text-slate-500">Enterprise data-first audit view. Filter, query, sort, batch resolve security incidents, and compile regulatory findings.</p>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+                        <button
+                          onClick={() => { playSound("click"); setIsCreateCaseOpen(true); }}
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition shadow-premium-sm flex items-center gap-1.5 select-none cursor-pointer"
+                          id="btn-create-case-trigger"
+                        >
+                          <Plus className="w-4 h-4 text-emerald-100" />
+                          <span>Create New Case</span>
+                        </button>
+                        <button
+                          onClick={() => { playSound("click"); setIsAgentSimulatorOpen(true); }}
+                          className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition shadow-premium-sm flex items-center gap-2 select-none cursor-pointer"
+                        >
+                          <Sparkles className="w-4 h-4 text-cyan-200 animate-pulse" />
+                          <span>AI Multi-Agent Pipeline</span>
+                        </button>
+                      </div>
                     </div>
 
                     {/* Table Filters bar */}
@@ -1637,6 +2732,7 @@ export default function Page() {
                                 <th className="p-3.5 text-center whitespace-nowrap">Risk Index</th>
                                 <th className="p-3.5 whitespace-nowrap">Amount</th>
                                 <th className="p-3.5 whitespace-nowrap">Status</th>
+                                <th className="p-3.5 text-center whitespace-nowrap text-slate-450 uppercase font-mono font-bold">Actions</th>
                               </tr>
                             </thead>
                             <tbody>
@@ -1679,12 +2775,22 @@ export default function Page() {
                                           {item.status}
                                         </span>
                                       </td>
+                                      <td className="p-3.5 text-center" onClick={(e) => e.stopPropagation()}>
+                                        <button
+                                          onClick={() => deleteAlert(item.id)}
+                                          className="text-slate-400 hover:text-red-650 hover:bg-red-50 transition p-1.5 rounded-lg cursor-pointer"
+                                          title={`Delete Case ${item.id}`}
+                                          id={`delete-row-btn-${item.id}`}
+                                        >
+                                          <Trash2 className="w-3.5 h-3.5" />
+                                        </button>
+                                      </td>
                                     </tr>
                                   );
                                 })
                               ) : (
                                 <tr>
-                                  <td colSpan={7} className="p-10 text-center text-slate-400 font-mono text-xs">
+                                  <td colSpan={8} className="p-10 text-center text-slate-400 font-mono text-xs">
                                     No transaction audit incidents matched your filter queries.
                                   </td>
                                 </tr>
@@ -1701,9 +2807,19 @@ export default function Page() {
                             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">INVESTIGATION WORKSPACE</span>
                             <span className="text-sm font-black text-slate-900 antialiased mt-0.5 block">Forensically Scan: {selectedAlert.id}</span>
                           </div>
-                          <span className="bg-slate-100 text-slate-650 text-[10.5px] font-bold font-mono px-2.5 py-0.5 rounded-xl border border-slate-200/60">
-                            {selectedAlert.caseId}
-                          </span>
+                          <div className="flex items-center gap-1.5">
+                            <span className="bg-slate-100 text-slate-650 text-[10.5px] font-bold font-mono px-2.5 py-0.5 rounded-xl border border-slate-200/60">
+                              {selectedAlert.caseId}
+                            </span>
+                            <button
+                              onClick={() => deleteAlert(selectedAlert.id)}
+                              className="text-slate-400 hover:text-red-650 hover:bg-red-50 p-1.5 rounded-xl border border-slate-200 transition-colors cursor-pointer flex items-center justify-center"
+                              title={`Delete Case ${selectedAlert.id}`}
+                              id="btn-delete-case-details"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </div>
 
                         {/* Timeline chronological view */}
@@ -1728,17 +2844,83 @@ export default function Page() {
 
                         {/* Evidence Uploads simulation panel */}
                         <div className="p-3.5 bg-slate-50 border border-slate-150 rounded-xl space-y-2 select-none">
+                          <input
+                            type="file"
+                            ref={fileInputRef}
+                            multiple
+                            onChange={(e) => handleAddEvidenceFiles(e.target.files)}
+                            className="hidden"
+                            id="audit-file-upload-input"
+                          />
                           <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Associated Legal Evidence</div>
-                          <div className="flex gap-2">
-                            <span className="bg-white border border-slate-200 text-slate-600 font-mono text-[9px] px-2 py-1 rounded cursor-pointer">
-                              📄 IP_Address_Logs.log
+                          <div className="flex flex-wrap gap-2 items-center">
+                            <span className="bg-white border border-slate-200 text-slate-600 font-mono text-[9.5px] px-2.5 py-1 rounded-lg flex items-center gap-1 select-none">
+                              <span>📄</span>
+                              <span>IP_Address_Logs.log</span>
                             </span>
-                            <span className="bg-white border border-slate-200 text-slate-600 font-mono text-[9px] px-2 py-1 rounded cursor-pointer">
-                              📁 Fraud_Signatures_SHA256
+                            <span className="bg-white border border-slate-200 text-slate-600 font-mono text-[9.5px] px-2.5 py-1 rounded-lg flex items-center gap-1 select-none">
+                              <span>📁</span>
+                              <span>Fraud_Signatures_SHA256</span>
                             </span>
+                            {selectedAlert.evidenceFiles?.map((fname, idx) => (
+                              <span key={idx} className="bg-blue-50 border border-blue-200 text-blue-700 font-mono text-[9.5px] px-2.5 py-1 rounded-lg flex items-center gap-1.5 shadow-premium-sm transition-all animate-in fade-in zoom-in duration-150">
+                                <Paperclip className="w-3 h-3 text-blue-500 shrink-0" />
+                                <span className="max-w-[125px] truncate" title={fname}>{fname}</span>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    playSound("click");
+                                    setAlerts(prev =>
+                                      prev.map(a => {
+                                        if (a.id === selectedAlert.id) {
+                                          return {
+                                            ...a,
+                                            evidenceFiles: (a.evidenceFiles || []).filter((_, fidx) => fidx !== idx)
+                                          };
+                                        }
+                                        return a;
+                                      })
+                                    );
+                                    setSelectedAlert(prev => {
+                                      if (!prev) return prev;
+                                      return {
+                                        ...prev,
+                                        evidenceFiles: (prev.evidenceFiles || []).filter((_, fidx) => fidx !== idx)
+                                      };
+                                    });
+                                    addLog("SECURITY", `Removed associated evidence file [${fname}] from case ${selectedAlert.id}.`);
+                                  }}
+                                  className="text-blue-400 hover:text-blue-700 font-bold ml-1 text-xs leading-none shrink-0 cursor-pointer animate-pulse"
+                                  title="Remove attachment"
+                                  id={`remove-evidence-btn-${idx}`}
+                                >
+                                  ×
+                                </button>
+                              </span>
+                            ))}
                           </div>
-                          <div className="border border-dashed border-slate-305 p-3 rounded-lg text-center text-[10.5px] text-slate-450 hover:bg-white transition cursor-pointer font-medium mt-1">
-                            Drag & drop cyber incident artifacts to bind to this court case file
+                          <div
+                            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                            onDragEnter={(e) => { e.preventDefault(); setIsDragging(true); }}
+                            onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }}
+                            onDrop={(e) => {
+                              e.preventDefault();
+                              setIsDragging(false);
+                              handleAddEvidenceFiles(e.dataTransfer.files);
+                            }}
+                            onClick={() => fileInputRef.current?.click()}
+                            className={`border border-dashed p-3.5 rounded-lg text-center text-[10.5px] transition cursor-pointer font-semibold mt-1 uppercase tracking-wider flex items-center justify-center gap-1.5 min-h-[44px] select-none ${
+                              isDragging
+                                ? "bg-blue-50 border-blue-500 text-blue-600 font-bold scale-[1.01] shadow-sm animate-pulse"
+                                : "border-slate-300 text-slate-500 hover:bg-white hover:border-slate-400 hover:text-slate-700"
+                            }`}
+                            id="audit-file-drop-zone"
+                          >
+                            <Upload className={`w-3.5 h-3.5 ${isDragging ? "text-blue-500 animate-bounce" : "text-slate-400"}`} />
+                            <span>
+                              {isDragging ? "Drop files to attach" : "Drag & drop file or click to bind incident artifacts"}
+                            </span>
                           </div>
                         </div>
 
@@ -2518,10 +3700,28 @@ export const securityTraceAlerts = pgTable("security_trace_alerts", {
               <div className="flex-1 overflow-y-auto p-4 space-y-3.5 bg-slate-50/50 custom-scrollbar select-text">
                 {chatMessages.map((msg, i) => (
                   <div key={i} className={`flex flex-col ${msg.role === "user" ? "items-end" : "items-start"}`}>
-                    <div className={`p-3.5 rounded-2xl text-[11.5px] leading-relaxed max-w-[90%] md:max-w-[100%] ${msg.role === "user" ? "bg-blue-600 text-white font-semibold shadow-md rounded-tr-none" : "bg-white text-slate-800 border border-slate-200 shadow-sm rounded-tl-none font-medium text-slate-700"}`}>
+                    <div className={`p-3.5 rounded-2xl text-[11.5px] leading-relaxed max-w-[90%] md:max-w-[100%] whitespace-pre-wrap font-sans ${msg.role === "user" ? "bg-blue-600 text-white font-semibold shadow-md rounded-tr-none" : "bg-white text-slate-800 border border-slate-200 shadow-sm rounded-tl-none font-medium text-slate-700"}`}>
                       {msg.content}
                     </div>
                     <span className="text-[8.5px] font-mono text-slate-400 mt-1 uppercase font-bold">{msg.time}</span>
+                    
+                    {msg.role === "model" && msg.suggestions && msg.suggestions.length > 0 && i === chatMessages.length - 1 && (
+                      <div className="mt-3.5 w-full space-y-2 select-none">
+                        <span className="text-[9px] font-extrabold uppercase text-slate-400 tracking-wider block">Suggested Next Actions:</span>
+                        <div className="flex flex-wrap gap-1.5 max-w-full">
+                          {msg.suggestions.map((sug, sIndex) => (
+                            <button
+                              key={sIndex}
+                              onClick={() => submitCopilotMessage(sug)}
+                              disabled={chatLoading}
+                              className="text-[10.5px] font-semibold text-slate-700 bg-white border border-slate-250 hover:border-blue-500 hover:text-blue-600 focus:ring-1 focus:ring-blue-500 rounded-full px-3 py-1.5 transition text-left cursor-pointer shadow-sm active:scale-95 disabled:opacity-50"
+                            >
+                              {sug}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
                 {chatLoading && (
@@ -2793,10 +3993,28 @@ export const securityTraceAlerts = pgTable("security_trace_alerts", {
                     <div className="flex-1 overflow-y-auto space-y-3 py-3 select-text custom-scrollbar text-xs min-h-[160px]">
                       {chatMessages.map((msg, i) => (
                         <div key={i} className={`flex flex-col ${msg.role === "user" ? "items-end" : "items-start"}`}>
-                          <div className={`p-3 rounded-2xl ${msg.role === "user" ? "bg-blue-600 text-white rounded-tr-none font-semibold" : "bg-white text-slate-800 border border-slate-200 rounded-tl-none font-medium leading-relaxed"}`}>
+                          <div className={`p-3 rounded-2xl whitespace-pre-wrap font-sans ${msg.role === "user" ? "bg-blue-600 text-white rounded-tr-none font-semibold" : "bg-white text-slate-800 border border-slate-200 rounded-tl-none font-medium leading-relaxed"}`}>
                             {msg.content}
                           </div>
                           <span className="text-[7.5px] font-mono text-slate-450 uppercase mt-0.5">{msg.time}</span>
+                          
+                          {msg.role === "model" && msg.suggestions && msg.suggestions.length > 0 && i === chatMessages.length - 1 && (
+                            <div className="mt-3 w-full space-y-1.5 select-none text-left">
+                              <span className="text-[8.5px] font-bold uppercase text-slate-450 tracking-wider block">Suggested Next Actions:</span>
+                              <div className="flex flex-wrap gap-1 max-w-full">
+                                {msg.suggestions.map((sug, sIndex) => (
+                                  <button
+                                    key={sIndex}
+                                    onClick={() => submitCopilotMessage(sug)}
+                                    disabled={chatLoading}
+                                    className="text-[9.5px] font-semibold text-slate-700 bg-white border border-slate-200 hover:border-blue-500 hover:text-blue-600 rounded-full px-2.5 py-1.5 transition text-left cursor-pointer shadow-sm active:scale-95 disabled:opacity-50"
+                                  >
+                                    {sug}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       ))}
                       {chatLoading && (
@@ -2858,6 +4076,472 @@ export const securityTraceAlerts = pgTable("security_trace_alerts", {
             </div>
           </div>
         )}
+
+        {/* ================= AI MULTI-AGENT PIPELINE SIMULATOR MODAL ================= */}
+        <AnimatePresence>
+          {isAgentSimulatorOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md select-none overflow-y-auto">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 15 }}
+                className="w-full max-w-5xl bg-[#0B1220] border border-white/10 rounded-3xl overflow-hidden shadow-2xl flex flex-col h-[85vh] max-h-[800px] text-slate-300 font-sans"
+              >
+                {/* Header banner */}
+                <div className="bg-[#0e182a] border-b border-white/5 p-5 flex justify-between items-center shrink-0">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+                      <Cpu className="w-5 h-5 text-cyan-200 animate-pulse" />
+                    </div>
+                    <div>
+                      <h2 className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-2">
+                        <span>Aegis-9 Cognitive Multi-Agent Pipeline</span>
+                        <span className="text-[9px] bg-red-650/20 border border-red-500/30 text-red-400 px-1.5 py-0.2 rounded font-mono font-black">
+                          ORCHESTRATED ACTIVE
+                        </span>
+                      </h2>
+                      <p className="text-[10.5px] text-slate-450 mt-0.5 leading-none">
+                        Interactive validation protocol tracing Case Ingestion ➔ 5 AI Agents ➔ Robot Hook dispatch.
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => { playSound("click"); setIsAgentSimulatorOpen(false); }}
+                    className="p-2 hover:bg-white/5 rounded-full text-slate-450 hover:text-white transition cursor-pointer"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Subheader: Presets bar */}
+                <div className="bg-slate-900/60 border-b border-white/5 px-6 py-3.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shrink-0 text-xs">
+                  <div className="text-[10px] uppercase font-mono font-bold text-slate-500">
+                    01 / Select Core Fraud Preset Vector:
+                  </div>
+                  <div className="flex gap-2">
+                    {[
+                      { id: "crypto", label: "Crypto Account Drain" },
+                      { id: "travel", label: "Impossible Velocity" },
+                      { id: "micro", label: "P2P Micro-charge" }
+                    ].map(p => (
+                      <button
+                        key={p.id}
+                        onClick={() => handleSimPresetChange(p.id as any)}
+                        className={`px-3 py-1.5 rounded-lg border text-[10px] font-mono font-extrabold transition cursor-pointer ${simulatorPreset === p.id ? "bg-blue-600 text-white border-blue-500 shadow-md" : "bg-white/5 text-slate-400 border-white/5 hover:bg-white/10"}`}
+                      >
+                        {p.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Main Split Columns (Scrollable body) */}
+                <div className="flex-1 overflow-y-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 custom-scrollbar">
+                  
+                  {/* Left Col: Target variables config (Span 5) */}
+                  <div className="lg:col-span-5 space-y-4 flex flex-col">
+                    <div className="text-[10.5px] text-slate-500 uppercase font-bold tracking-widest font-mono">
+                      Target Transaction Variables (Editable)
+                    </div>
+
+                    <div className="bg-slate-900/40 border border-white/5 rounded-2xl p-4.5 space-y-3.5 text-xs text-slate-400">
+                      
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-bold text-slate-500 uppercase">Customer Name</label>
+                        <input
+                          type="text"
+                          value={simulatorName}
+                          onChange={(e) => { setSimulatorName(e.target.value); setSimulatorPreset("custom"); }}
+                          className="w-full bg-[#0E1726]/80 border border-white/5 rounded-xl px-3 py-2 text-slate-250 outline-none focus:border-blue-500 text-xs font-semibold"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-bold text-slate-500 uppercase">Merchant</label>
+                          <input
+                            type="text"
+                            value={simulatorMerchant}
+                            onChange={(e) => { setSimulatorMerchant(e.target.value); setSimulatorPreset("custom"); }}
+                            className="w-full bg-[#0E1726]/80 border border-white/5 rounded-xl px-3 py-2 text-slate-250 outline-none focus:border-blue-500 text-xs font-semibold"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-bold text-slate-500 uppercase">Amount ($)</label>
+                          <input
+                            type="number"
+                            value={simulatorAmount}
+                            onChange={(e) => { setSimulatorAmount(Number(e.target.value)); setSimulatorPreset("custom"); }}
+                            className="w-full bg-[#0E1726]/80 border border-white/5 rounded-xl px-3 py-2 text-slate-250 outline-none focus:border-blue-500 text-xs font-mono font-semibold"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-bold text-slate-500 uppercase">Origin Geo-location</label>
+                        <input
+                          type="text"
+                          value={simulatorLocation}
+                          onChange={(e) => { setSimulatorLocation(e.target.value); setSimulatorPreset("custom"); }}
+                          className="w-full bg-[#0E1726]/80 border border-white/5 rounded-xl px-3 py-2 text-slate-250 outline-none focus:border-blue-500 text-xs font-semibold"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-bold text-slate-500 uppercase">Network IP Address</label>
+                          <input
+                            type="text"
+                            value={simulatorIp}
+                            onChange={(e) => { setSimulatorIp(e.target.value); setSimulatorPreset("custom"); }}
+                            className="w-full bg-[#0E1726]/80 border border-white/5 rounded-xl px-3 py-2 text-slate-205 outline-none focus:border-blue-500 text-xs font-mono font-semibold"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-bold text-slate-500 uppercase">Threat Level Ratio</label>
+                          <span className="w-full block bg-[#0E1726]/40 border border-white/5 rounded-xl px-3 py-2 text-amber-400 font-mono text-xs font-bold leading-normal">
+                            {simulatorAmount > 10000 ? "🔴 CRITICAL (96)" : simulatorAmount > 200 ? "🟡 SUSPICIOUS (75)" : "🟢 RISK-SAFE (24)"}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-bold text-slate-500 uppercase">Client User-Agent Browser Header</label>
+                        <input
+                          type="text"
+                          value={simulatorHeader}
+                          onChange={(e) => { setSimulatorHeader(e.target.value); setSimulatorPreset("custom"); }}
+                          className="w-full bg-[#0E1726]/80 border border-white/5 rounded-xl px-3 py-1.5 text-[10.5px] text-slate-400 outline-none focus:border-blue-500 font-mono"
+                        />
+                      </div>
+
+                    </div>
+
+                    {/* Launch trigger button */}
+                    <div className="mt-auto pt-4 border-t border-white/5 select-none shrink-0">
+                      <button
+                        onClick={() => runAgentMaverickPipeline()}
+                        disabled={simulatorStep !== "IDLE" && simulatorStep !== "RESOLVED"}
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-3.5 px-4 rounded-xl transition flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider cursor-pointer font-sans"
+                      >
+                        {simulatorStep === "IDLE" || simulatorStep === "RESOLVED" ? (
+                          <>
+                            <Zap className="w-4 h-4 text-cyan-200 fill-current animate-bounce" />
+                            <span>Run Cognitive Orchestrator</span>
+                          </>
+                        ) : (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin text-cyan-200" />
+                            <span>Orchestrating... Step {simulatorStep}</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                  </div>
+
+                  {/* Right Col: Interactive Flow Diagram & Logs (Span 7) */}
+                  <div className="lg:col-span-7 flex flex-col space-y-5 justify-between">
+                    
+                    {/* Visual Progress Bar Flow */}
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="text-[10px] font-mono text-slate-500 uppercase">02 / Dynamic Agent Pipeline Level</span>
+                        <span className="font-mono text-blue-400 font-bold">{pipelineProgress}%</span>
+                      </div>
+                      <div className="w-full h-2 bg-slate-900 border border-white/5 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-blue-500 via-cyan-400 to-indigo-500 transition-all duration-300"
+                          style={{ width: `${pipelineProgress}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Interactive Pipeline State Nodes */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+                      {[
+                        { id: "INTAKE", icon: Database, name: "Intake Agent", desc: "Data Ingest" },
+                        { id: "INVESTIGATION", icon: Cpu, name: "Investigation", desc: "Gemini Forensic" },
+                        { id: "GRAPH", icon: Layers, name: "Graph Agent", desc: "Neo4j Clusters" },
+                        { id: "RISK", icon: Sliders, name: "Risk Assessment", desc: "Threat Rating" },
+                        { id: "REPORT", icon: FileText, name: "Report Agent", desc: "FinCEN-SAR" },
+                        { id: "UIPATH", icon: Zap, name: "UiPath Robotic", desc: "Queue Dispatch" }
+                      ].map((step, index) => {
+                        const active = simulatorStep === step.id;
+                        const complete =
+                          (step.id === "INTAKE" && !["IDLE", "INTAKE"].includes(simulatorStep)) ||
+                          (step.id === "INVESTIGATION" && !["IDLE", "INTAKE", "INVESTIGATION"].includes(simulatorStep)) ||
+                          (step.id === "GRAPH" && !["IDLE", "INTAKE", "INVESTIGATION", "GRAPH"].includes(simulatorStep)) ||
+                          (step.id === "RISK" && !["IDLE", "INTAKE", "INVESTIGATION", "GRAPH", "RISK"].includes(simulatorStep)) ||
+                          (step.id === "REPORT" && !["IDLE", "INTAKE", "INVESTIGATION", "GRAPH", "RISK", "REPORT"].includes(simulatorStep)) ||
+                          (step.id === "UIPATH" && simulatorStep === "RESOLVED");
+
+                        const StepIcon = step.icon;
+
+                        return (
+                          <div
+                            key={step.id}
+                            className={`p-3 rounded-xl border flex flex-col justify-between transition-colors h-22 select-none ${active ? "bg-blue-600/10 border-blue-505 shadow-md" : complete ? "bg-emerald-500/10 border-emerald-500/25" : "bg-slate-905/40 border-white/5 opacity-40"}`}
+                          >
+                            <div className="flex justify-between items-center">
+                              <StepIcon className={`w-4 h-4 ${active ? "text-blue-400 animate-pulse" : complete ? "text-emerald-400" : "text-slate-500"}`} />
+                              {complete && (
+                                <span className="bg-emerald-950 text-emerald-400 font-mono text-[7px] font-bold px-1 py-0.2 rounded">
+                                  PASS
+                                </span>
+                              )}
+                              {active && (
+                                <span className="bg-blue-950 text-blue-400 font-mono text-[7px] font-bold px-1 py-0.2 rounded animate-pulse">
+                                  ACTIVE
+                                </span>
+                              )}
+                            </div>
+                            <div>
+                              <span className="text-[10px] text-white font-bold block leading-tight mt-1 truncate" title={step.name}>{step.name}</span>
+                              <span className="text-[8.5px] text-slate-500 block font-mono truncate leading-tight mt-0.5" title={step.desc}>{step.desc}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      
+                      {/* Terminal-state ultimate badge */}
+                      <div className={`col-span-2 p-3 rounded-xl border flex flex-col justify-center items-center text-center h-22 ${simulatorStep === "RESOLVED" ? "bg-emerald-500/15 border-emerald-500/30" : "bg-slate-905/20 border-white/5 opacity-30 select-none"}`}>
+                        <ShieldCheck className={`w-5 h-5 ${simulatorStep === "RESOLVED" ? "text-emerald-450 animate-bounce" : "text-slate-600"}`} />
+                        <span className="text-[10.5px] font-black text-white uppercase tracking-wider block mt-1 leading-none">Security Resolved</span>
+                        <span className="text-[7.5px] font-mono text-slate-450 block uppercase tracking-widest mt-0.5 leading-none">Case Closed Locked</span>
+                      </div>
+                    </div>
+
+                    {/* Live Scrolling Terminal Logs */}
+                    <div className="space-y-1.5 flex-1 flex flex-col min-h-[220px]">
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="text-[10px] font-mono text-slate-500 uppercase">03 / Core Handshake Chronicles Console</span>
+                        <span className="text-[8.5px] font-mono text-slate-600">SECURE SHELL</span>
+                      </div>
+                      
+                      <div className="flex-1 bg-slate-950 border border-white/5 rounded-xl p-4.5 font-mono text-[10px] text-slate-350 overflow-y-auto space-y-2 select-text h-[250px] custom-scrollbar">
+                        {simulatorLogs.length === 0 ? (
+                          <div className="h-full flex flex-col justify-center items-center text-slate-600 text-center select-none">
+                            <Terminal className="w-5 h-5 mb-1.5 opacity-40 text-blue-400" />
+                            <span>Awaiting automated sandbox execution trigger...</span>
+                            <span className="text-[8.5px] opacity-70 mt-0.5">[Logs compiled reactively in real-time]</span>
+                          </div>
+                        ) : (
+                          simulatorLogs.map((log, i) => {
+                            let colorClass = "text-slate-400";
+                            if (log.startsWith("[INTAKE")) colorClass = "text-blue-400 font-semibold";
+                            else if (log.startsWith("[INVESTIGATION")) colorClass = "text-cyan-300 font-semibold";
+                            else if (log.startsWith("[GRAPH")) colorClass = "text-purple-300 font-semibold";
+                            else if (log.startsWith("[RISK")) colorClass = "text-amber-300 font-bold";
+                            else if (log.startsWith("[REPORT")) colorClass = "text-indigo-300 font-semibold";
+                            else if (log.startsWith("[UIPATH")) colorClass = "text-pink-300 font-semibold";
+                            else if (log.startsWith("[RESOLVED") || log.startsWith("[COMPLETE")) colorClass = "text-emerald-400 font-bold font-sans text-xs bg-emerald-950/20 border border-emerald-900/40 p-2.5 rounded-lg";
+                            
+                            return (
+                              <div key={i} className={`leading-normal ${colorClass}`}>
+                                {log}
+                              </div>
+                            );
+                          })
+                        )}
+                      </div>
+                    </div>
+
+                  </div>
+
+                </div>
+
+                {/* Footer bar */}
+                <div className="bg-slate-900/60 border-t border-white/5 px-6 py-4 flex justify-between items-center shrink-0 font-mono text-[9px] text-slate-500 select-none">
+                  <span>ORCHESTRATOR COMPENSATING SYSTEM V3.9</span>
+                  <span>100% SECURE AUTONOMIC SEEDED FAILSAFE</span>
+                </div>
+
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* ================= CREATE NEW SECURITY CASE MODAL ================= */}
+        <AnimatePresence>
+          {isCreateCaseOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm select-none overflow-y-auto">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 15 }}
+                className="w-full max-w-xl bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-2xl flex flex-col text-slate-800 font-sans"
+              >
+                {/* Header */}
+                <div className="bg-slate-50 border-b border-slate-150 p-5 flex justify-between items-center shrink-0">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
+                      <Plus className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-sm font-black text-slate-950 uppercase tracking-widest flex items-center gap-2">
+                        <span>Manually Provision Case</span>
+                        <span className="text-[9px] bg-emerald-50 border border-emerald-200 text-emerald-700 px-1.5 py-0.2 rounded font-mono font-bold">
+                          NEW TRANS RECORD
+                        </span>
+                      </h2>
+                      <p className="text-[10.5px] text-slate-500 mt-0.5 leading-none">
+                        Establish secure investigative telemetry for a new cybersecurity case file.
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => { playSound("click"); setIsCreateCaseOpen(false); }}
+                    className="p-1.5 hover:bg-slate-200/60 rounded-full text-slate-400 hover:text-slate-800 transition cursor-pointer"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Form fields scrollable */}
+                <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Customer Name</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. John Doe"
+                        value={newCaseCustomer}
+                        onChange={(e) => setNewCaseCustomer(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-850 outline-none focus:border-emerald-500 font-semibold"
+                        required
+                        id="new-case-customer-input"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Merchant Identity</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. STRIPE RECURRING DEBIT"
+                        value={newCaseMerchant}
+                        onChange={(e) => setNewCaseMerchant(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-850 outline-none focus:border-emerald-500 font-semibold"
+                        required
+                        id="new-case-merchant-input"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Transaction Amount ($)</label>
+                      <input
+                        type="number"
+                        placeholder="e.g. 1950.45"
+                        value={newCaseAmount}
+                        onChange={(e) => setNewCaseAmount(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-850 outline-none focus:border-emerald-500 font-semibold font-mono"
+                        required
+                        id="new-case-amount-input"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Category Class</label>
+                      <select
+                        value={newCaseCategory}
+                        onChange={(e) => setNewCaseCategory(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-850 outline-none focus:border-emerald-500 font-semibold cursor-pointer"
+                        id="new-case-category-input"
+                      >
+                        <option value="Card Testing">Card Testing Pool</option>
+                        <option value="Impossible Velocity">Impossible Velocity Gap</option>
+                        <option value="Crypto Account Drain">Crypto Account Drain</option>
+                        <option value="P2P Micro-charge">P2P Micro-charge</option>
+                        <option value="Biometric Spoofing">Biometric Spoofing</option>
+                        <option value="Credential Stuffing">Credential Stuffing</option>
+                        <option value="Manual Account Audit">Manual Account Audit</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Location Origin</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. New York, USA"
+                        value={newCaseLocation}
+                        onChange={(e) => setNewCaseLocation(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-850 outline-none focus:border-emerald-500 font-semibold"
+                        id="new-case-location-input"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Risk Score Index (0-100)</label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={newCaseRiskScore}
+                          onChange={(e) => setNewCaseRiskScore(Number(e.target.value))}
+                          className="w-full h-1 bg-slate-100 appearance-none cursor-pointer accent-emerald-600 rounded-lg"
+                          id="new-case-risk-slider"
+                        />
+                        <span className={`text-xs font-mono font-black shrink-0 px-2.5 py-0.5 rounded-lg ${newCaseRiskScore >= 75 ? "bg-red-50 text-red-600 font-bold" : newCaseRiskScore >= 40 ? "bg-amber-50 text-amber-600" : "bg-emerald-50 text-emerald-600"}`}>
+                          {newCaseRiskScore}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Device IP Address</label>
+                      <input
+                        type="text"
+                        value={newCaseDeviceIp}
+                        onChange={(e) => setNewCaseDeviceIp(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-850 outline-none focus:border-emerald-500 font-mono font-medium"
+                        id="new-case-ip-input"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">User-Agent Device Header</label>
+                      <input
+                        type="text"
+                        value={newCaseDeviceHeader}
+                        onChange={(e) => setNewCaseDeviceHeader(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[11px] text-slate-500 outline-none focus:border-emerald-500 font-mono"
+                        id="new-case-ua-input"
+                      />
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* Footer with action buttons */}
+                <div className="bg-slate-50 border-t border-slate-200 px-6 py-4 flex justify-between items-center shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => { playSound("click"); setIsCreateCaseOpen(false); }}
+                    className="text-slate-500 hover:bg-slate-200/60 font-semibold text-xs px-4 py-2.5 rounded-xl transition cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={addNewCase}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-5 py-2.5 rounded-xl transition shadow-premium-sm flex items-center gap-1.5 cursor-pointer"
+                    id="btn-confirm-create-case"
+                  >
+                    <Plus className="w-3.5 h-3.5 text-white" />
+                    <span>Authorize & Create Registry Record</span>
+                  </button>
+                </div>
+
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
 
       </div>
     </div>

@@ -68,28 +68,39 @@ export async function POST(req: NextRequest) {
       model: "gemini-3.5-flash",
       contents: JSON.stringify(validatedTx),
       config: {
-        systemInstruction: `You are an elite cyber financial security AI. Analyze the provided financial transaction details.
-Evaluate potential fraud signals such as:
-1. Geolocation inconsistencies (e.g. transacting from high-risk locations, or velocity impossible travel).
-2. Unusual transaction amounts or sudden frequency changes compared to typical historical profiles.
-3. Device and IP anomalies (VPNs, Tor, spoofed systems, unexpected browser headers).
-4. Pattern signatures matching common banking fraud schemes (e.g. credit mule test transactions, rapid withdrawals, account drain).
+        systemInstruction: `You are an elite enterprise financial intelligence agent inside a banking fraud response cell. Your job is to analyze transaction data and generate high-profile, easy-to-understand, and professional fraud investigation reports for judges, business users, compliance teams, and fraud investigators.
 
-Your response must be returned in JSON matching the exact schema provided. Keep the explanation futuristic, secure, highly clinical, and action-oriented.`,
+Follow these strict output guidelines:
+1. Use clear and professional business language. Avoid excessive cinema-style cybersecurity jargon or dramatic phrasing.
+2. Explain all technical findings in simple, plain English to ensure maximum readability.
+3. Structurally populate the JSON 'reasoning' field so it is visually clean and strictly separated into the following headings:
+   EXECUTIVE SUMMARY
+   CASE DETAILS
+   KEY RISK INDICATORS
+   EVIDENCE FOUND
+   RISK ASSESSMENT
+   RECOMMENDED ACTIONS
+   FINAL VERDICT
+4. Highlight important findings using simple clear bullet points.
+5. In RECOMMENDED ACTIONS, always use realistic enterprise fraud mitigation terms. Absolutely avoid fictional protocol names like "KILL_CHAIN_PROTOCOL_ALPHA", "OMEGA_LOCK", "DELTA_VECTOR", "ALPHA_CONTAINMENT". Instead, use terms like: "Freeze Account", "Block Transaction", "Verify Customer Identity", "Terminate Active Sessions", "Escalate to Investigator".
+6. Keep the 'summary' and 'recommendation' fields simple, concise, and realistic.`,
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
           properties: {
-            riskScore: { type: Type.INTEGER, description: "Security hazard rating from 0 to 100 based on transaction metrics." },
+            riskScore: { type: Type.INTEGER, description: "Calculated risk score from 0 to 100." },
             verdict: { type: Type.STRING, description: "One of: 'CRITICAL', 'SUSPICIOUS', or 'APPROVED'." },
-            reasoning: { type: Type.STRING, description: "Detailed cyber forensic reasoning of why this transaction was color-coded this way." },
+            reasoning: { 
+              type: Type.STRING, 
+              description: "A highly structured markdown report of the transaction. It must contain the exact sections: EXECUTIVE SUMMARY, CASE DETAILS, KEY RISK INDICATORS, EVIDENCE FOUND, RISK ASSESSMENT, RECOMMENDED ACTIONS, FINAL VERDICT. Avoid any unneeded formatting. Make sure sections have double line-breaks separating them for perfect readability." 
+            },
             anomalies: { 
               type: Type.ARRAY, 
               items: { type: Type.STRING },
-              description: "Specific technical indicators of suspicious behavior (e.g., 'Velocity Impossible', 'Mule Pattern', 'Proxy/VPN Alert'). Please supply 2-3 brief ones."
+              description: "2-3 specific real-world indicators in plain English (e.g., 'Inconsistent Geolocation', 'Automated Script Signature', 'Unverified Device Connection')."
             },
-            recommendation: { type: Type.STRING, description: "Suggested real-time system mitigation step (e.g., 'IMMEDIATE ACCOUNT FREEZE', 'SMS CHALLENGE REQUESTED', 'NOTIFY COMPLIANCE')." },
-            summary: { type: Type.STRING, description: "A high-impact, headline-ready case summary suited for security analysts." }
+            recommendation: { type: Type.STRING, description: "Suggested real-world action (e.g., Freeze Account, Verify Customer Identity, Escalate to Investigator)." },
+            summary: { type: Type.STRING, description: "A clean, high-level business summary of the incident." }
           },
           required: ["riskScore", "verdict", "reasoning", "anomalies", "recommendation", "summary"]
         }
@@ -111,10 +122,37 @@ Your response must be returned in JSON matching the exact schema provided. Keep 
       isMock: true,
       riskScore: 84,
       verdict: "SUSPICIOUS",
-      reasoning: "Secure network fail-safe active. Transaction from localized geo-terminal is flagged due to unverified biometric signature paths. Transaction flow analyzed locally under high mitigation protocols.",
-      anomalies: ["Secure Fail-Safe Active", "Biometric Signature Gap", "Unverified Router Path"],
-      recommendation: "RE-AUTHENTICATE CUSTOMER / TWO-FACTOR MANDATORY CHALLENGE",
-      summary: "Fail-safe forensics evaluated high-risk vector with unverified client authentication route."
+      reasoning: `EXECUTIVE SUMMARY
+A transaction was flagged for review due to inconsistencies in network access and a missing biometric match. A security hold has been applied for customer protection.
+
+CASE DETAILS
+- Subject Account: Retained from Session
+- Transaction Entity: Verified Merchant Terminal
+- Monitored Outflow: Matching active transaction
+- Connection Terminal: Unverified Router Path
+
+KEY RISK INDICATORS
+- Access via unverified virtual routing protocols.
+- Logged access diverges from typical user device profile.
+
+EVIDENCE FOUND
+- The customer session originated from an unverified network terminal.
+- Device credentials could not be fully verified against historical logs.
+
+RISK ASSESSMENT
+- Confidence Score: 85%
+- Calculated Risk Level: High
+
+RECOMMENDED ACTIONS
+- Escalate to Investigator
+- Freeze Account
+- Verify Customer Identity
+
+FINAL VERDICT
+- SUSPICIOUS`,
+      anomalies: ["Unverified Network Path", "Biometric Signature Gap", "Unverified Router Path"],
+      recommendation: "Verify Customer Identity",
+      summary: "Security hold applied on unverified device connection trace."
     });
   }
 }
