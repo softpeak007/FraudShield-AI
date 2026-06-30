@@ -1,109 +1,219 @@
-# FraudShield AI – Autonomous Multi-Agent Fraud Investigation Platform
+Here’s your **updated GitHub README.md** with both **Live Demo + YouTube Demo Video properly integrated** and polished for hackathon submission:
 
-FraudShield AI is an enterprise-ready fraud investigation platform that uses autonomous AI agents, intelligent automation, graph analytics, and Gemini AI to help organizations detect and investigate fraud faster.
+---
 
-## 🌐 Live Demo
+# 🛡️ FraudShield AI
 
-https://fraud-shield-ai-eta.vercel.app/
+### Enterprise AI Fraud Detection & BPMN Orchestration System
 
-## 🎥 Demo Video
-https://youtu.be/H7th0TsKur4?si=36abYWbMvUtlolQ4
+FraudShield AI is a **real-time, AI-powered fraud detection and orchestration platform** built using **UiPath API Workflows + Maestro BPMN**. It detects suspicious activity, assigns risk scores, generates human-readable AI explanations, and automatically triggers security actions like alerts, monitoring routing, and incident creation.
 
-## Problem
+---
 
-Financial institutions lose billions every year due to fraud. Traditional investigations are slow, manual, and fragmented, resulting in delayed case resolution and increased operational costs.
+# 🌐 Live Demo
 
-## Solution
+👉 [https://fraud-shield-ai-eta.vercel.app/](https://fraud-shield-ai-eta.vercel.app/)
 
-FraudShield AI leverages autonomous AI agents to:
+---
 
-* Collect evidence automatically
-* Analyze suspicious transactions
-* Detect hidden fraud relationships
-* Calculate risk scores
-* Generate investigation reports
-* Recommend next actions
+# 🎥 Demo Video
 
-## Key Features
+👉 [https://youtu.be/H7th0TsKur4?si=36abYWbMvUtlolQ4](https://youtu.be/H7th0TsKur4?si=36abYWbMvUtlolQ4)
 
-* Multi-Agent AI Architecture
-* Automated Fraud Investigation
-* AI Risk Scoring
-* Graph-Based Link Analysis
-* Human-in-the-Loop Approvals
-* Enterprise Security Architecture
+---
 
-## Technology Stack
+# ❗ Problem
 
-### Frontend
+Modern digital systems face increasingly complex fraud patterns that traditional rule-based systems cannot handle effectively.
 
-* Next.js
-* React
-* Tailwind CSS
+Key challenges include:
 
-### AI Layer
+* Delayed fraud detection (not real-time)
+* Lack of automated response workflows
+* No unified orchestration between security tools
+* High dependency on manual analyst review
+* Poor visibility and fragmented audit trails
+* Limited explainability of fraud decisions
 
-* Gemini AI
-* RAG (Retrieval-Augmented Generation)
+---
 
-### Data Layer
+# 💡 Solution
 
-* Neo4j
-* Qdrant
+FraudShield AI solves these problems using an **end-to-end automated fraud intelligence system**:
 
-### Automation
+### Core Capabilities:
 
-* UiPath Maestro
-* UiPath Agents
-* UiPath Orchestrator
-* UiPath AI Center
+* ⚡ Real-time fraud scoring (0–100)
+* 🤖 LLM-based fraud explanation engine
+* 🌍 Impossible travel detection
+* 📱 Device fingerprint validation
+* 🔁 Behavioral anomaly detection
+* 🚨 Automatic alerting for High/Critical events
+* 🎫 ServiceNow incident creation
+* 📊 SIEM / monitoring system integration
+* 📧 SendGrid email notifications
+* 📈 Scheduled fraud intelligence reporting
+* 🔄 BPMN-based orchestration using Maestro
+* ⏱ Timeout + retry resilience system
 
-### Deployment
+---
 
-* Vercel
-* GitHub
+# 🏗️ Architecture
 
-## Business Impact
-
-* Up to 80% Faster Investigations
-* Reduced Manual Workload
-* Improved Fraud Detection Accuracy
-* Faster Case Resolution
-* Better Compliance Support
-
-## Installation
-
-```bash
-npm install
-npm run dev
+```text
+External Event (Login / Transaction)
+            │
+            ▼
+   FraudShield Scorer (AI Engine)
+            │
+            ▼
+ Risk Classification Gateway (BPMN)
+   ├── Low Risk → Monitor Only
+   ├── Medium Risk → Review Queue
+   └── High/Critical →
+         ├── SIEM Push
+         ├── ServiceNow Incident
+         ├── Email Alert
+            │
+            ▼
+        Audit Logging Layer
+            │
+            ▼
+     Fraud Intelligence Reports
 ```
 
-## Production Build
+---
 
-```bash
-npm run build
-npm run start
-```
+# 🔄 Workflow Components
 
-## Deployment
+## 1. FraudShield Scorer
 
-### Vercel
+* Analyzes login, transaction, and behavior data
+* Computes risk score (0–100)
+* Detects anomalies (geo-velocity, device mismatch, brute force)
+* Generates LLM explanation for transparency
+* Returns structured JSON decision
 
-1. Push code to GitHub.
-2. Import repository into Vercel.
-3. Configure environment variables.
-4. Deploy.
+---
 
-## Future Roadmap
+## 2. Fraud Monitor Push
 
-* Real-Time Fraud Monitoring
-* Predictive Fraud Detection
-* Voice AI Assistant
-* Advanced Analytics
+* Routes fraud events to monitoring systems
+* Sends data to SIEM / dashboards
+* Applies severity-based queue routing
+* Includes retry and failure handling
 
-## Author
+---
 
-soft peak
-Founder & AI Developer
-SoftPeak AI
+## 3. ServiceNow Incident Engine
+
+* Automatically creates security incidents for Critical fraud
+* Sends structured forensic details
+* Enables SOC team response workflow
+
+---
+
+## 4. Fraud Report Generator
+
+* Runs on scheduled triggers (daily/hourly)
+* Aggregates fraud logs
+* Computes risk analytics:
+
+  * Total events
+  * Risk distribution
+  * Top fraud reasons
+  * Blocked vs allowed actions
+* Sends automated email reports via SendGrid
+
+---
+
+# 🔀 BPMN Orchestration (Maestro)
+
+* Message Start Event (Fraud Event Received)
+* FraudShield Scorer Service Task
+* 30s Timeout Boundary Event (fallback handling)
+* Risk Gateway (Low / Medium / High)
+* Parallel Execution (Critical Path):
+
+  * SIEM Push
+  * ServiceNow Incident
+  * Email Alert
+* Audit Join Gateway
+* End Event
+
+---
+
+# 🧪 Test Scenarios
+
+### 🟢 Low Risk
+
+* Normal login from known device
+* Expected: Allow + Log only
+
+### 🟡 Medium Risk
+
+* New device + moderate anomaly
+* Expected: Review Queue + Monitoring
+
+### 🔴 High/Critical Risk
+
+* Impossible travel + brute force attack
+* Expected:
+
+  * Block action
+  * ServiceNow incident created
+  * Email alert sent
+  * SIEM push triggered
+
+---
+
+# ⚙️ Tech Stack
+
+* UiPath API Workflows
+* Maestro BPMN Orchestration
+* JavaScript (Scoring + Logic Engine)
+* SendGrid Email API
+* ServiceNow Incident API
+* REST APIs
+* JSON-based workflow engine
+* SIEM / Monitoring integrations
+
+---
+
+# 📊 Business Impact
+
+* ⏱ Faster fraud detection (real-time)
+* 🧠 AI-assisted decision transparency
+* 🔁 Fully automated security response
+* 📉 Reduced manual analyst workload
+* 📚 Complete audit and compliance trail
+* 🚨 Faster SOC incident response
+
+---
+
+# 🚀 Future Enhancements
+
+* Graph-based fraud detection engine
+* ML behavioral risk scoring model
+* Kafka event streaming layer
+* Real-time fraud dashboard
+* Multi-region deployment support
+* Advanced LLM fraud investigator agent
+
+---
+
+# 📄 License
+
+This project is intended for demonstration and hackathon purposes. Production deployment requires proper security hardening and compliance configuration.
+
+---
+
+# 👨‍💻 Built For
+
+**UiPath AgentHack 2026**
+
+AI • Automation • BPMN Orchestration • Cybersecurity • Intelligent Systems
+
+---
+
 
